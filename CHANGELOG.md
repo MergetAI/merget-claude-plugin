@@ -10,7 +10,8 @@ which tools `.mcp.json` titles.
 ## 0.2.0 — 2026-09-10
 
 - Renamed to **Merget**, the product's name; `sema` was an internal codename.
-  The plugin is `merget`, the marketplace is `merget`, and the skills are
+  The plugin is `merget`, the marketplace is `merget-queue` (the name
+  `merget` is taken by the Merget VCS plugin marketplace), and the skills are
   `merget-pr` and `merget-graph`. Tool ids (`sema_pr_findings`,
   `sema_graph_*`), the `sema` CLI and the `SEMA_TOKEN` environment variable
   keep their names until the API renames them in a versioned release.

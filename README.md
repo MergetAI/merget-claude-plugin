@@ -17,7 +17,7 @@ queue on an agent's behalf.
 
 ```
 /plugin marketplace add MergetAI/merget-claude-plugin
-/plugin install merget@merget
+/plugin install merget@merget-queue
 ```
 
 Then authenticate. Merget's sign-in currently issues tokens to the `merget`
