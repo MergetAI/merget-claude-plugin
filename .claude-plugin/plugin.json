@@ -1,0 +1,9 @@
+{
+  "author": {
+    "name": "Merget AI"
+  },
+  "description": "Semantic merge intelligence for code review and conflict resolution. Pull a pull request's Merget analysis into the session: findings and why each one blocks or advises, the merge verdict, queue position, and what a clean-looking text merge broke. Query Merget's code property graph of any commit — symbols, callers, callees, def-use chains, dependence slices, graph diffs and a finding's own slice — so an agent reasons over the cross-file consequences of a change instead of guessing from the diff. Ships the merget-pr and merget-graph skills, which teach Claude how to read a findings document and how to widen a slice within a token budget, and connects to the Merget MCP server (twelve read-only tools). Built for reviewing risky merges, chasing broken references and interference across files, and giving coding agents precise dependency context.",
+  "homepage": "https://sema.merget.ai",
+  "name": "merget",
+  "version": "0.2.0"
+}

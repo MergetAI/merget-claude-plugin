@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "merget": {
+      "type": "http",
+      "url": "https://sema.merget.ai/mcp",
+      "_meta": {
+        "ideToolTitles": {
+          "sema_pr_findings": "Merget: pull request findings",
+          "sema_pr_runs": "Merget: runs of a pull request",
+          "sema_run_findings": "Merget: findings of a run",
+          "sema_queue_status": "Merget: queue status",
+          "sema_graph_symbols": "Merget graph: symbols in a file",
+          "sema_graph_finding": "Merget graph: finding with its slice",
+          "sema_graph_slice": "Merget graph: dependence slice",
+          "sema_graph_callers": "Merget graph: callers",
+          "sema_graph_callees": "Merget graph: callees",
+          "sema_graph_def_use": "Merget graph: def-use chains",
+          "sema_graph_diff": "Merget graph: diff between two commits",
+          "sema_graph_intent": "Merget graph: intent of a pull request side"
+        }
+      }
+    }
+  }
+}
