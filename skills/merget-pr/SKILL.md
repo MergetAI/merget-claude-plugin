@@ -18,7 +18,7 @@ This skill teaches the tools that exist today. **If a tool, argument, field or c
 
 ## Tools
 
-Through the `sema` MCP server (`/mcp` shows it as `sema`; tools are `mcp__sema__<name>`):
+Through the `merget` MCP server (installed by this plugin, `/mcp` shows it as `plugin:merget:merget` and the tools are `mcp__plugin_merget_merget__<name>`; added by hand as `merget`, they are `mcp__merget__<name>`):
 
 | Tool | Arguments | Returns |
 |------|-----------|---------|
@@ -29,7 +29,7 @@ Through the `sema` MCP server (`/mcp` shows it as `sema`; tools are `mcp__sema__
 
 Through the CLI when there is no MCP client: `sema pr owner/repo#N` (markdown on a terminal, JSON when piped, `--json`/`--md` to force, `--run <uuid>`, `--include-report`, `--queue`); it exits `2` when `verdict.blocking_count > 0`, `1` on any error. Sign in once with `sema login`; CI sets `SEMA_TOKEN`.
 
-All of it is read-only. Merget never changes a PR, a branch or a queue on your behalf; the graph tools of the `merget-graph` skill are read-only as well.
+These four tools are read-only, as are the graph tools of the `merget-graph` skill. Acting on a queue or changing a repository's settings is the `merget-operate` skill's, with the user's say.
 
 ## Start here
 
@@ -87,14 +87,16 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 - `repo_not_found` (404): the repository is unknown to Merget, has no installation, or the token was consented for another organization; the three are indistinguishable by design. Ask which organization was chosen at sign-in and whether Merget is installed on the repository.
 - `agent_access_disabled` (403): the organization or repository switched agents off in Merget's dashboard (Settings → Agents, Repositories → agent access). Only an owner can change it.
-- `insufficient_scope` (403): the token lacks the scope the tool needs (`sema:findings.read` for these tools, `sema:queue.read` for the queue block). In Claude Code run `/mcp`, sign out of `sema` and sign in again with the scope; with the CLI, `sema login --scopes …`.
-- `unauthorized` (401) or `session_required`: sign-in is needed (`/mcp` → sign in; `sema login`); an agent token is refused on every mutating route, which is expected.
+- `insufficient_scope` (403): the token lacks the scope the tool needs (`sema:findings.read` for these tools, `sema:queue.read` for the queue block). Ask the user to turn it on for this agent in Merget under Settings › Agents, or to authorize again (in Claude Code `/mcp` → the Merget server → Clear authentication → Authenticate, ticking it on the sign-in page; with the CLI, `sema login --scopes …`). Never retry blindly.
+- `agent_scope_disabled` (403): the organization's owner does not let agents use that scope there; an owner allows it under Settings › Agents.
+- `unauthorized` (401): sign-in is needed (`/mcp` → the Merget server → Authenticate; `sema login`).
 - `verdict.status` is `failed`: there is no verdict; do not report the PR as clean or blocked. Point at `run.details_url`.
 - `rate_limited` (429): wait for `Retry-After`; do not loop.
-- The user asks for something these tools cannot do: merge, re-run Merget, dismiss a finding, change the queue, or read a repository Merget is not installed on. Say it is unavailable and offer the closest real step (push a fix and re-read; ask an owner to install Merget).
+- The user asks for something these tools cannot do. Merging, re-running Merget and changing the queue are the `merget-operate` skill's (`sema_queue_action`, with `sema:queue.write` and the user's confirmation); dismissing a finding happens on GitHub; a repository Merget is not installed on needs its GitHub App (the `merget-setup` skill). Never imply these tools did any of it.
 
 ## References
 
 - Every field of the findings document, the runs list and the queue block → [references/findings-schema.md](references/findings-schema.md)
 - The classification and verdict rules, with worked examples of what to say → [references/interpretation.md](references/interpretation.md)
 - Graph queries about a finding, a symbol or a commit → the `merget-graph` skill
+- Queue actions (retry, hold, land) and repository settings → the `merget-operate` skill

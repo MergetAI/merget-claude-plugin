@@ -16,7 +16,23 @@
           "sema_graph_callees": "Merget graph: callees",
           "sema_graph_def_use": "Merget graph: def-use chains",
           "sema_graph_diff": "Merget graph: diff between two commits",
-          "sema_graph_intent": "Merget graph: intent of a pull request side"
+          "sema_graph_intent": "Merget graph: intent of a pull request side",
+          "sema_status": "Merget: status and next step",
+          "sema_repos_list": "Merget: repositories of an organization",
+          "sema_repo_settings_get": "Merget: settings of a repository",
+          "sema_repo_update": "Merget: change a repository's settings",
+          "sema_queues_overview": "Merget: queues of an organization",
+          "sema_queue_get": "Merget: queue of a repository",
+          "sema_queue_action": "Merget: act on a merge queue",
+          "sema_runs_list": "Merget: runs of an organization",
+          "sema_run_get": "Merget: one run",
+          "sema_analytics": "Merget: analytics of an organization",
+          "sema_org_get": "Merget: organization settings",
+          "sema_org_update": "Merget: change an organization",
+          "sema_github_connect": "Merget: connect GitHub",
+          "sema_installation_sync": "Merget: re-check a GitHub installation",
+          "sema_secrets": "Merget: validation secrets",
+          "sema_docs": "Merget: documentation"
         }
       }
     }

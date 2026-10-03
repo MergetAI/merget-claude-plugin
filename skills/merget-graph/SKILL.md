@@ -12,7 +12,7 @@ This skill teaches the tools that exist today. **If a tool, argument or `rev` fo
 
 ## Tools
 
-All read-only, all `mcp__sema__<name>` through the `sema` MCP server, all needing the `sema:graph.read` scope. Arguments and result shapes in [references/tools.md](references/tools.md).
+All read-only, all on the `merget` MCP server (`mcp__plugin_merget_merget__<name>` in Claude Code through this plugin, `mcp__merget__<name>` when the server was added by hand as `merget`), all needing the `sema:graph.read` scope. Arguments and result shapes in [references/tools.md](references/tools.md).
 
 | Tool | Asks | Key arguments |
 |------|------|---------------|
@@ -23,7 +23,7 @@ All read-only, all `mcp__sema__<name>` through the `sema` MCP server, all needin
 | `sema_graph_callees` | what a method calls (with provenance) | `repo`, `rev`, `at`, `hops?` |
 | `sema_graph_def_use` | reaching definitions of a variable inside a method | `repo`, `rev`, `var`, `in` |
 | `sema_graph_diff` | symbols and calls added / removed / re-signatured between two commits | `repo`, `rev`, `to`, `scope?` |
-| `sema_graph_intent` | the PR text / commit messages / merget prompt behind a side | `repo`, `rev` (`pr:N:head` or `pr:N:base`) |
+| `sema_graph_intent` | what a PR meant to do: its title, Merget's brief of its latest finished run and the intents recorded per finding (not its description, commit messages or prompts) | `repo`, `rev` (`pr:N:head` or `pr:N:base`; a sha that is a PR's head works too) |
 
 CLI equivalent (no MCP client): `sema graph <symbols|slice|callers|callees|def-use|diff|intent|finding> --repo owner/name --rev <rev> [--path P] [--symbol S] [--at file:line] [--fingerprint F] [--run <uuid>] [--to <rev>] [--direction back|fwd|both] [--hops N] [--max-tokens N] [--json]`. It prints the answer's markdown (`--json` for the whole document) and exits `3` while the commit's graph is still being built (`graph_pending`), `1` on any other error.
 
@@ -35,7 +35,7 @@ Follow this order; it is what keeps calls cheap and answers grounded.
 
 1. **Anchor first.** Start from a finding (`sema_graph_finding` with the `fingerprint` from the `merget-pr` skill) or from a file (`sema_graph_symbols` on the `rev` you care about). Both give you `NodeView`s with exact `file:line`, `name`, `full_name` and `key` to address next.
 2. **Slice with `hops: 1`.** `sema_graph_slice` at the anchor, `direction: both` unless the question is clearly one-sided (`back` for "what feeds this", `fwd` for "what does this affect"). Read the `markdown`: it is the budgeted, fenced code with its regions, and it usually answers the question.
-3. **Widen only when the slice leaves a question**: `sema_graph_callers`/`sema_graph_callees` for cross-method reach, `sema_graph_def_use` for one variable's definitions inside a method, `sema_graph_diff` for "what changed between `pr:N:base` and `pr:N:head`" at symbol level, `sema_graph_intent` when you need the author's stated purpose. One widening per question; do not fan out.
+3. **Widen only when the slice leaves a question**: `sema_graph_callers`/`sema_graph_callees` for cross-method reach, `sema_graph_def_use` for one variable's definitions inside a method, `sema_graph_diff` for "what changed between `pr:N:base` and `pr:N:head`" at symbol level, `sema_graph_intent` when you need what the PR meant to do (its title and Merget's brief). One widening per question; do not fan out.
 4. **Stop after three failing identical calls.** If the same call errors three times (`symbol_not_found`, `timeout`, `graph_pending` past its `retry_after_secs`), stop querying, say what you tried, and read the file directly.
 
 Choose `rev` from the grammar in [references/rev-grammar.md](references/rev-grammar.md): `pr:42:head` (the PR as pushed), `pr:42:base` (the target tip its last run met), `pr:42:merge` (Merget's certified merge commit, when one exists), a sha, or `branch:main`.
@@ -77,7 +77,8 @@ Cross-file call recall is **language-dependent** and low for some languages (sin
 | `symbol_not_found` (404) | the symbol, path or line does not exist on that rev; `suggestions` when the index has near misses (same short name elsewhere → prefix → edit distance ≤ 2 → substring) | pick a suggestion or use `sema_graph_symbols` to find the right locator |
 | `budget_exceeded` (422) | `max_tokens` too small for the minimal answer | raise `max_tokens` once |
 | `quota_exceeded` (429) | the organization's daily tool-call or tool-token quota; `retry_after_secs` to the next day | stop; tell the user |
-| `insufficient_scope` (403) | token lacks `sema:graph.read` | in Claude Code `/mcp` → sign out of `sema` → sign in with the scope; CLI `sema login --scopes sema:graph.read,…` |
+| `insufficient_scope` (403) | token lacks `sema:graph.read` | ask the user to turn it on for this agent in Merget (Settings › Agents) or to authorize again (`/mcp` → the Merget server → Clear authentication → Authenticate); CLI `sema login --scopes sema:graph.read,…`; never retry blindly |
+| `agent_scope_disabled` (403) | the organization's owner does not let agents use `sema:graph.read` there | ask an owner (Settings › Agents) |
 | `agent_access_disabled` (403) | repository allows `findings` only, or agents are off | ask an owner (dashboard → Repositories → agent access) |
 | `repo_not_found` (404) | unknown repository / no installation / another organization | ask the user which organization was chosen at sign-in |
 | `graph_unavailable` (503) | graph service not configured, down, or with no serve slot to free (`retryable: true`) | wait once; then report |
