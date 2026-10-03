@@ -20,39 +20,108 @@ queue on an agent's behalf.
 /plugin install merget@merget-queue
 ```
 
-Then authenticate. Merget's sign-in currently issues tokens to the `merget`
-CLI rather than to MCP clients directly, so the plugin's server is configured
-to ask the CLI for a bearer each time it connects:
+The second command opens the plugin's details: pick a scope, and the plugin
+is active once the install summary says so. When it says
+`Run /reload-plugins to activate`, Claude Code reloads for you; if it warns
+that the reload would invalidate the prompt cache instead, run
+`/reload-plugins --force` or start a new session.
+
+### Updating
+
+Claude Code updates plugins from this marketplace only when you turn on
+auto-update for it (`/plugin` → Marketplaces → `merget-queue`). Otherwise run
+`claude plugin update merget@merget-queue`, or **Update now** on the plugin
+in `/plugin` → Installed, then `/reload-plugins` in an open session.
+
+### Upgrading from 0.2.0
+
+0.2.0 had you add a server of your own, `merget`, whose header helper asks
+the `sema` CLI for a token. Remove it before you sign in, along with any
+other `merget` server you added yourself:
 
 ```
-cargo install --git https://github.com/MergetAI/sema --locked sema-cli   # installs `sema`
-sema login --legacy
+claude mcp remove merget
 ```
 
-and add the server with a helper that prints the header (the CLI refreshes
-the token before printing it, so the connection never goes stale):
+Without `-s` the command finds the server in whichever scope it is in; when
+one is in more than one scope, it names the command for each. Then delete
+the helper, `~/.merget/mcp-headers.sh` (Windows:
+`%USERPROFILE%\.merget\mcp-headers.ps1`). Claude Code connects one server
+per address, and a server you add yourself takes precedence over the
+plugin's: while one points at `https://sema.merget.ai/mcp`, `/mcp` lists it
+and not `plugin:merget:merget`.
 
-```bash
-# ~/.merget/mcp-headers.sh — chmod +x
-printf '{"Authorization":"Bearer %s"}' "$(sema token print)"
-```
-```
-claude mcp add-json merget '{"type":"http","url":"https://sema.merget.ai/mcp","headersHelper":"~/.merget/mcp-headers.sh"}' -s user
-```
+Any other client you set up from 0.2.0 still sends the `SEMA_TOKEN` bearer:
+delete what sends it — the `bearer_token_env_var` line (Codex), the
+`headers` entry (Cursor), or the same header in another client — then sign
+in as [Other agents](#other-agents) describes.
 
-On Windows, save the helper as PowerShell instead:
+## Sign in
 
-```powershell
-# %USERPROFILE%\.merget\mcp-headers.ps1
-@{ Authorization = "Bearer " + (sema token print).Trim() } | ConvertTo-Json -Compress
-```
+Run `/mcp`, select the Merget server — `plugin:merget:merget` — and
+authenticate. Claude Code opens Merget's sign-in service,
+`https://auth.merget.ai`, in your browser: sign in with your Merget account
+and its second factor, check the consent page and select **Approve**. There
+is nothing else to install and no token to copy; Claude Code keeps the
+tokens itself. If `/mcp` lists a server named `merget` instead, one you
+added yourself is in the way: remove it as
+[Upgrading from 0.2.0](#upgrading-from-020) describes.
 
-When browser sign-in ships, the plugin's own server signs in on the first
-401 — Claude Code reads
-`https://sema.merget.ai/.well-known/oauth-protected-resource/mcp`, registers
-itself (RFC 7591), runs the PKCE flow with
-`resource=https://sema.merget.ai/mcp` and shows the consent page (client,
-scopes, organization) — and the helper above can be deleted.
+You need a Merget account with a second factor set up, in an organization
+that uses Merget; without such an organization the consent page has nothing
+to approve.
+
+### What the consent page shows
+
+- **Application** — the name the client registered under.
+- **Sends access to** — where the approval goes: an address on your own
+  computer, marked *(this computer)*, for a client that receives it there,
+  as Claude Code and Cursor's desktop app do (`localhost (this computer)`);
+  a hosted client's web address, such as `claude.ai`; or an app's own
+  address, such as `cursor://anysphere.cursor-mcp`, which Cursor uses when
+  it cannot start its callback on your computer. A **Known client** badge
+  marks a client Merget vouches for: its own CLI, or a web address of
+  Claude's (`claude.ai`, `claude.com`) or VS Code's (`vscode.dev`,
+  `insiders.vscode.dev`). Any other address off your computer reads
+  "Merget doesn't recognize this application" — expected for a client
+  Merget doesn't list, but check that the address belongs to the client
+  you are connecting.
+- **Client ID** — the id the client was given (`dcr_…` for one that
+  registered itself).
+- **Merget deployment** — `https://sema.merget.ai/mcp`.
+- **It will be allowed to** — one line per scope on offer. For the read
+  scopes and `offline_access`, the lines are:
+
+| Scope | What the page says |
+|---|---|
+| `sema:findings.read` | Read pull-request and run findings, merge briefs and repository summaries |
+| `sema:graph.read` | Read graph tools over any commit Merget has built |
+| `sema:queue.read` | Read queue position, enforcement and branch relationships |
+| `offline_access` | Stay connected without signing in again |
+
+- **Organization** — one of your organizations that uses Merget, or **All
+  my organizations**.
+
+Approve only a connection you started yourself. **Approve** grants the
+client the access the page describes, for the organization chosen;
+**Deny** grants nothing.
+
+A client that asks for no particular scope is offered every permission its
+registration allows, plus `offline_access` for a client that can use a
+refresh token, as Claude Code and most MCP clients can. With
+`offline_access` the client stays signed in: an access token lasts an hour,
+and the client renews it on its own (a refresh token lasts 30 days and is
+replaced each time it is used). A client granted no `offline_access` signs
+in again when the hour is up.
+
+### Signing in again
+
+When the server shows as failed — as one signed in before Merget moved its
+sign-in to `auth.merget.ai` does — run `/mcp`, select the Merget server,
+choose **Clear authentication** and authenticate again. To choose another
+organization or pick up a scope, first revoke the client in Merget's
+dashboard (Settings → Agents → **Authorized agents**), then do the same.
+Revoking it there is also how you cut a client off.
 
 Access is gated on the Merget side too: an organization owner can switch
 agents off (dashboard → Settings → Agents) and each repository can allow
@@ -60,41 +129,98 @@ agents off (dashboard → Settings → Agents) and each repository can allow
 
 ## Other agents
 
-Codex, Cursor, OpenCode and any other MCP client use the same URL through
-their MCP settings, with the same bearer until browser sign-in ships:
+Any MCP client with OAuth support connects the same way: add the remote
+(Streamable HTTP) server `https://sema.merget.ai/mcp` and connect. Merget's
+401 names `https://sema.merget.ai/.well-known/oauth-protected-resource/mcp`,
+which points at `https://auth.merget.ai`; the client registers itself there
+(RFC 7591), runs the PKCE flow and opens the consent page above.
+
+**Claude Code without the plugin** —
+`claude mcp add --transport http --scope user merget https://sema.merget.ai/mcp`,
+then `/mcp`. Use it instead of the plugin, not alongside it: a server you
+add yourself at that address takes precedence over the plugin's.
+
+**Claude on the web and Claude Desktop** — Customize → Connectors →
+**Add** → **Add custom connector**: name it Merget, enter
+`https://sema.merget.ai/mcp`, choose **Register automatically** under
+**OAuth client**, then connect it and sign in. On a Team or Enterprise plan
+an owner adds it (Organization settings → Connectors) and each member
+connects. Once connected, it is available in the Claude apps for iOS and
+Android too. A connector added before Merget's sign-in moved to
+`auth.merget.ai` has to be removed and added again: **Reconnect** keeps
+using the old address.
+
+**Codex** — in `~/.codex/config.toml`, then run `codex mcp login merget`:
 
 ```toml
-# Codex — ~/.codex/config.toml
 [mcp_servers.merget]
 url = "https://sema.merget.ai/mcp"
-bearer_token_env_var = "SEMA_TOKEN"
 ```
 
+**Cursor** — in `~/.cursor/mcp.json`, or `.cursor/mcp.json` in a project:
+
 ```json
-// Cursor — ~/.cursor/mcp.json
 {
   "mcpServers": {
-    "merget": {
-      "url": "https://sema.merget.ai/mcp",
-      "headers": { "Authorization": "Bearer ${env:SEMA_TOKEN}" }
-    }
+    "merget": { "url": "https://sema.merget.ai/mcp" }
   }
 }
 ```
 
-Export `SEMA_TOKEN=$(sema token print)` before starting them; that token
-lives an hour, so restart the client when it expires (or use the header
-helper above, which refreshes).
+**VS Code** — in `.vscode/mcp.json`, or the file **MCP: Open User
+Configuration** opens; VS Code registers itself on the first connection and
+opens the browser:
+
+```json
+{
+  "servers": {
+    "merget": { "type": "http", "url": "https://sema.merget.ai/mcp" }
+  }
+}
+```
+
+**OpenCode** — in `opencode.json` in a project, or
+`~/.config/opencode/opencode.json`; it signs in when the server first
+answers 401, or run `opencode mcp auth merget`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "merget": { "type": "remote", "url": "https://sema.merget.ai/mcp" }
+  }
+}
+```
+
+**Without OAuth**, a client sends a bearer token in the `Authorization`
+header instead; most can read it from the environment (Codex:
+`bearer_token_env_var = "SEMA_TOKEN"`; Cursor:
+`"Authorization": "Bearer ${env:SEMA_TOKEN}"` under `headers`). Merget's CLI
+([on request](#the-cli-on-its-own)) gets one: sign it in once with
+`sema login`, then, before starting the client, run
+
+```
+export SEMA_TOKEN="$(SEMA_TOKEN= sema token print)"
+```
+
+`SEMA_TOKEN=` keeps the CLI from printing back a token already exported; it
+prints its own, renewed when close to expiring. That token expires within
+the hour (`sema whoami` shows when) and the client never renews it: when
+calls start failing with 401, run the line again and restart the client.
+Keep the token out of anything you share.
 
 The skills are plain markdown under `skills/`; copy them into the agent's
-skill directory when it supports one (`~/.codex/skills/`), or into
+skill directory when it supports one (Codex: `~/.agents/skills/`), or into
 `.cursor/rules/` as rules.
 
 ## The CLI on its own
 
+`sema`, Merget's CLI, is available on request from hello@merget.ai.
+
 ```
+sema login                  # sign in through the browser, once
 sema pr owner/repo#N        # the findings document; exit 2 when findings block
-sema graph callers --repo owner/name --rev pr:N:head --file src/x.rs --line 42
+sema graph callers --repo owner/name --rev pr:N:head --at src/x.rs:42
 sema whoami                 # subject, client, scopes, org, expiry
 ```
 

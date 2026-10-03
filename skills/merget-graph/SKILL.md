@@ -12,7 +12,7 @@ This skill teaches the tools that exist today. **If a tool, argument or `rev` fo
 
 ## Tools
 
-All read-only, all `mcp__sema__<name>` through the `sema` MCP server, all needing the `sema:graph.read` scope. Arguments and result shapes in [references/tools.md](references/tools.md).
+All read-only, all `mcp__plugin_merget_merget__<name>` through this plugin's `merget` MCP server (`mcp__merget__<name>` for a server added by hand as `merget`), all needing the `sema:graph.read` scope. Arguments and result shapes in [references/tools.md](references/tools.md).
 
 | Tool | Asks | Key arguments |
 |------|------|---------------|
@@ -77,7 +77,7 @@ Cross-file call recall is **language-dependent** and low for some languages (sin
 | `symbol_not_found` (404) | the symbol, path or line does not exist on that rev; `suggestions` when the index has near misses (same short name elsewhere → prefix → edit distance ≤ 2 → substring) | pick a suggestion or use `sema_graph_symbols` to find the right locator |
 | `budget_exceeded` (422) | `max_tokens` too small for the minimal answer | raise `max_tokens` once |
 | `quota_exceeded` (429) | the organization's daily tool-call or tool-token quota; `retry_after_secs` to the next day | stop; tell the user |
-| `insufficient_scope` (403) | token lacks `sema:graph.read` | in Claude Code `/mcp` → sign out of `sema` → sign in with the scope; CLI `sema login --scopes sema:graph.read,…` |
+| `insufficient_scope` (403) | token lacks `sema:graph.read` | in Claude Code `/mcp` → the Merget server → **Clear authentication** → sign in with the scope; CLI `sema login --scopes sema:graph.read,…` |
 | `agent_access_disabled` (403) | repository allows `findings` only, or agents are off | ask an owner (dashboard → Repositories → agent access) |
 | `repo_not_found` (404) | unknown repository / no installation / another organization | ask the user which organization was chosen at sign-in |
 | `graph_unavailable` (503) | graph service not configured, down, or with no serve slot to free (`retryable: true`) | wait once; then report |

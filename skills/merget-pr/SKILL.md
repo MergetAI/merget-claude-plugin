@@ -18,7 +18,7 @@ This skill teaches the tools that exist today. **If a tool, argument, field or c
 
 ## Tools
 
-Through the `sema` MCP server (`/mcp` shows it as `sema`; tools are `mcp__sema__<name>`):
+Through the `merget` MCP server (`/mcp` shows this plugin's as `plugin:merget:merget`, whose tools are `mcp__plugin_merget_merget__<name>`; a server added by hand as `merget` names them `mcp__merget__<name>`):
 
 | Tool | Arguments | Returns |
 |------|-----------|---------|
@@ -39,6 +39,8 @@ All of it is read-only. Merget never changes a PR, a branch or a queue on your b
    - `superseded` — the head moved and a newer run is in progress. Re-read once it finishes.
    - `failed` — the latest run failed or was cancelled. There is **no verdict**; open `run.details_url`, never report the PR as clean.
    - `blocked` / `waiting` / `clean` / `advisory` — read the counts and the findings.
+   - `conflicts` — once Merget serves it: the repository is in `advisory` mode and git could not merge the pull request (a textual conflict Merget did not resolve, or a run that ended `conflicts`). Nothing is enforced, but it is **never clean**: say that git cannot merge the pull request as it stands. The findings are still counted beside it; read them as for `advisory`. `interpretation.next_steps` names each conflicted file, or sends you to `run.details_url` when the document lists none. In `queue` or `autonomous` mode the same pull request reads `blocked`, or `waiting`.
+   - Any other value is newer than this skill: never report it as clean; quote it and point at `run.details_url`.
 3. If `run.stale` is `true`, the findings describe an older head than the PR's current one: say which sha was analysed and treat the findings as provisional.
 4. Walk `findings` by `class` (see the vocabulary), then `interpretation.next_steps`, which already names the file and line to look at for each blocking finding.
 5. When the user asks *why* a finding exists or what to change, switch to the `merget-graph` skill (`sema_graph_finding` with the finding's `fingerprint`) rather than speculating from the message alone.
@@ -87,7 +89,7 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 - `repo_not_found` (404): the repository is unknown to Merget, has no installation, or the token was consented for another organization; the three are indistinguishable by design. Ask which organization was chosen at sign-in and whether Merget is installed on the repository.
 - `agent_access_disabled` (403): the organization or repository switched agents off in Merget's dashboard (Settings → Agents, Repositories → agent access). Only an owner can change it.
-- `insufficient_scope` (403): the token lacks the scope the tool needs (`sema:findings.read` for these tools, `sema:queue.read` for the queue block). In Claude Code run `/mcp`, sign out of `sema` and sign in again with the scope; with the CLI, `sema login --scopes …`.
+- `insufficient_scope` (403): the token lacks the scope the tool needs (`sema:findings.read` for these tools, `sema:queue.read` for the queue block). In Claude Code run `/mcp`, select the Merget server, choose **Clear authentication** and sign in again with the scope; with the CLI, `sema login --scopes …`.
 - `unauthorized` (401) or `session_required`: sign-in is needed (`/mcp` → sign in; `sema login`); an agent token is refused on every mutating route, which is expected.
 - `verdict.status` is `failed`: there is no verdict; do not report the PR as clean or blocked. Point at `run.details_url`.
 - `rate_limited` (429): wait for `Retry-After`; do not loop.

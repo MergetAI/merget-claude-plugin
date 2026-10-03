@@ -46,6 +46,7 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `superseded` | the head moved after the latest completed run and a newer run is queued or running |
 | `blocked` | mode `queue`/`autonomous` and `blocking_count > 0` |
 | `waiting` | mode `queue`/`autonomous`, nothing blocking, but not first in the plan or GitHub requirements unmet (`queue.blockers`) |
+| `conflicts` | once Merget serves it: run succeeded, mode `advisory` (nothing enforced), and git could not merge the PR — a textual conflict Merget did not resolve stands, or the run itself ended `conflicts` (`run.outcome`). It wins over the findings, which are still counted, and is never `clean`; in mode `queue`/`autonomous` the same PR reads `blocked`, or `waiting` while the queue says why it waits |
 | `clean` | run succeeded and every count except `suppressed` is zero |
 | `advisory` | run succeeded, nothing enforced: mode `advisory` (then `would_block_in_queue_mode = blocking_count > 0`), or an enforcing mode with only warnings/advisories left |
 
