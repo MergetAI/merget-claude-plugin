@@ -11,10 +11,10 @@ the state you are given, then read again.
 
 | `state` | `next_step.action` | Means | Who acts |
 |---------|--------------------|-------|----------|
-| `no_installation` | `install_github_app` | no active GitHub App installation is connected to the organization | you: `sema_github_connect` (owner); the human opens the URL |
+| `no_installation` | `install_github_app` | no active GitHub App installation is connected to the organization | the human, as an owner of the organization: at `next_step.url` (Settings › GitHub in Merget's dashboard) they install the App or connect an existing installation; no tool does it |
 | `suspended_installation` | `none` | GitHub suspended the App on every installation | a GitHub admin unsuspends it on the installation's GitHub page (`next_step.url`); installing again does not lift a suspension |
 | `github_unlinked` | `link_github` | installed, but the human has no GitHub account linked, so no private repository can be shown | the human links one at `next_step.url` |
-| `no_visible_repos` | `none` | the linked GitHub account cannot read any repository the App is installed on | a GitHub admin adds repositories to the installation or grants the account access, or the human connects another installation; then `sema_installation_sync` |
+| `no_visible_repos` | `none` | the linked GitHub account cannot read any repository the App is installed on | a GitHub admin adds repositories to the installation or grants the account access, or an owner connects another installation at `next_step.url`; then `sema_installation_sync` |
 | `access_unconfirmed` | `none` | Merget could not confirm the account's GitHub access yet (the check is running, or GitHub did not answer) | nobody: read again shortly |
 | `no_enabled_repos` | `enable_repository` | repositories to see, none enabled | you: `sema_repo_update {repo, enabled: true}` on one the human holds maintain or admin on |
 | `no_enabled_repos_locked` | `none` | none enabled, and the human holds neither maintain nor admin on any repository they see | someone with that access enables the first one |
@@ -52,7 +52,7 @@ A row may carry instead of `setup`:
 
 ## The GitHub side
 
-- The URL from `sema_github_connect` expires after 15 minutes; another call mints a new one. Nothing is asked of GitHub until the human opens it.
-- After the install, GitHub sends the human's browser back to Merget, which connects the installation to the organization the URL was minted for. If `sema_status` still reads `no_installation` afterwards, ask what the human saw; the link may have expired or the install may not have finished.
+- Connecting GitHub is an owner's step, in Merget's dashboard: at the organization's Settings › GitHub page (`next_step.url` of `install_github_app`) an owner installs Merget's GitHub App on the GitHub account that owns the repositories, or connects an installation that already exists. No tool installs the App, connects or releases an installation, or finds installations to connect: an agent never acts as an owner, whoever its user is.
+- After the install, GitHub sends the human's browser back to Merget, which connects the installation to the organization they started from. If `sema_status` still reads `no_installation` afterwards, ask what the human saw: the install may not have finished, or it was connected to another Merget organization.
 - An admin of the GitHub account accepts new App permissions (Contents: write for queue and autonomous mode) on the installation's GitHub settings page. Merget learns of it from GitHub, or at once from `sema_installation_sync`.
-- `sema_installation_sync` re-reads an installation from GitHub: its permissions, its repository list and their visibility. Without `installation` it syncs every installation of the organization (that also needs `sema:org.read`). An installation GitHub no longer has is removed from the organization and its queued work cancelled; its row then reads `ok: false` with the error `installation_removed`. Tell the human if it happens.
+- `sema_installation_sync` (`sema:repos.write`) re-reads an installation from GitHub: its permissions, its repository list and their visibility. Without `installation` it syncs every installation of the organization (that also needs `sema:org.read`). An installation GitHub no longer has is removed from the organization and its queued work cancelled; its row then reads `ok: false` with the error `installation_removed`. Tell the human if it happens.

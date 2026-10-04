@@ -27,30 +27,27 @@ happened: read the state before repeating it.
 
 ```json
 {"identity": {"sub": "…", "handle": "octo", "agent": true, "client_id": "dcr_…", "consented_org": "acme"},
- "scopes": ["sema:org.read", "sema:org.write", "sema:repos.write", "offline_access"],
- "orgs": [{"slug": "acme", "role": "owner", "display_name": "Acme", "agent_access": true, "agent_scopes": null,
-           "permissions": ["sema:org.read", "sema:org.write", "sema:repos.write"],
+ "scopes": ["sema:org.read", "sema:repos.write", "offline_access"],
+ "orgs": [{"slug": "acme", "role": "member", "display_name": "Acme", "agent_access": true, "agent_scopes": null,
+           "permissions": ["sema:org.read", "sema:repos.write"],
            "setup": {"state": "no_installation", "next_step": {"action": "install_github_app", "description": "…", "url": "https://sema.merget.ai/orgs/acme/settings/github"},
                      "counts": {…}, "github": {…}, "access": {…}}}],
  "next_step": {"action": "install_github_app", "description": "…", "url": "…", "org": "acme"}}
 ```
 
 `consented_org` is the organization this agent was approved for (null: all
-the user's). `permissions` is what this token may do in that organization:
-its scopes within the owner's cap, empty when agents are off there. States
-and actions: [setup-states.md](setup-states.md).
+the user's). `role` is the role an agent acts with there: always `member`,
+whoever its user is, since an agent never acts as an owner. `permissions` is
+what this token may do in that organization: its scopes within the owner's
+cap, empty when agents are off there. States and actions:
+[setup-states.md](setup-states.md).
 
-## `sema_github_connect` — `sema:org.write`, owner only
+No tool connects GitHub. For `install_github_app`, `next_step.url` is the
+organization's Settings › GitHub page in Merget's dashboard, where an owner
+of the organization installs Merget's GitHub App or connects an installation
+that already exists; give the human that page.
 
-| Argument | Type | Required | Meaning |
-|----------|------|----------|---------|
-| `org` | slug | no | the organization the installation will join |
-
-Answer: `{org, url, expires_at, next}`. `url` is the GitHub App install
-URL for the human, valid 15 minutes; nothing changes until they open it,
-and each call mints a new one.
-
-## `sema_installation_sync` — `sema:org.write`
+## `sema_installation_sync` — `sema:repos.write`
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -63,7 +60,9 @@ one row per installation: on success the installation (`account_login`,
 `enabled`, `mode`); on failure the error body. One that GitHub does not
 answer within 50 s reads `timeout` while the others still answer. Marked
 destructive: an installation GitHub no longer has is removed from the
-organization (`installation_removed`).
+organization (`installation_removed`). Re-checking is any member's, as the
+dashboard's **Re-check** is; connecting and releasing installations are an
+owner's, in the dashboard.
 
 ## `sema_repos_list` — `sema:org.read`, read-only
 

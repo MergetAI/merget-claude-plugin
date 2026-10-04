@@ -4,10 +4,15 @@
 through the same route bodies, so an agent and a person meet the same checks
 and the same refusals. Every action needs `sema:queue.write`, the
 repository's agent access at `findings_and_graph`, and the user's GitHub
-permission on the repository read live: `push` for every action but `pause`
-and `resume`, which need an organization owner with `maintain` (403
-`github_permission_required` or `owner_required` otherwise). No action is
-idempotent: read the queue again before repeating one.
+permission on the repository read live: `push` (403
+`github_permission_required` otherwise). No action is idempotent: read the
+queue again before repeating one.
+
+Pausing and resuming Merget's merges in autonomous mode are not actions
+here: they are an organization owner's, with **Pause merges** and **Resume
+merges** on the queue's page in the dashboard, and an agent never acts as an
+owner. Their routes answer an agent 403 `session_required`, whatever its
+token holds.
 
 ## Reading the plan first
 
@@ -32,8 +37,6 @@ requests relate; nodes and edges page separately).
 
 | `action` | Arguments | Modes | Answer | Refusals |
 |----------|-----------|-------|--------|----------|
-| `pause` | `reason` | autonomous | `{paused, in_flight}`; `in_flight` true: a land already running still finishes | 409 `pause_not_applicable` in advisory and queue mode, where a person or GitHub merges |
-| `resume` | | any | `{paused: null, in_flight}` | |
 | `retry` | `number` | any | `{requested: true, job_id}` — one pull request's analysis and preparation run again | 404 `entry_not_found` (not in the current plan), 409 `merge_in_flight` |
 | `hold` | `number`, `reason` (kept as the note) | queue, autonomous | `{held: true, number, head_sha, replanning, behind}` — `behind`: entries prepared again because their base changes; `{held: false, already: true}` when the user's hold already stands | 409 `hold_not_applicable`, `merge_in_flight`, `pr_not_open`; 404 `entry_not_found` |
 | `release` | `number` | queue, autonomous | `{released: true, number, replanning}` | 409 `not_held_by_user` (a hold Merget took — the author answers it with a push — or none); 404 `entry_not_found` |
@@ -93,7 +96,7 @@ Refusals, all 409 unless noted:
 | `code` | Means | Do |
 |--------|-------|----|
 | `land_not_applicable` | the mode takes no such request: advisory mode batches nothing, and in autonomous mode Merget lands a green batch or lane itself — "Land it now" is only for one GitHub refused to merge | read the plan again |
-| `queue_paused` | an autonomous pause stops merges | ask whether to `resume` first |
+| `queue_paused` | an autonomous pause stops merges | tell the user who paused it and why (`paused`); lifting it is an owner's, with **Resume merges** in the dashboard |
 | `batch_not_green`, `batch_not_current`, `batch_partly_landed` | the batch is not one a request may take now | read the plan again |
 | `land_already_requested` | one request stands already | show it (`land_authorization`); `cancel_land` only if the user asks |
 | `sequence_changed` | the offer moved; `offer` is the current one, `[{number, head_sha}]` | show the new offer and ask again — never resend on your own |

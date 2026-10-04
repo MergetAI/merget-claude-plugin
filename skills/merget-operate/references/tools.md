@@ -27,10 +27,13 @@ GitHub live (`sema_repo_settings_get`, `sema_repo_update`,
 |------|-----------|-------------|------------|
 | `sema_status`, `sema_repos_list`, `sema_repo_settings_get`, `sema_queues_overview`, `sema_queue_get`, `sema_runs_list`, `sema_run_get`, `sema_analytics`, `sema_org_get`, `sema_docs` | yes | no | yes |
 | `sema_repo_update`, `sema_installation_sync`, `sema_secrets` | no | yes | yes |
-| `sema_queue_action`, `sema_org_update` | no | yes | no |
-| `sema_github_connect` | no | no | no |
+| `sema_queue_action` | no | yes | no |
 
-`sema_status` and `sema_github_connect` are described in the `merget-setup` skill.
+`sema_status` is described in the `merget-setup` skill. No tool takes an
+organization owner's step — connecting GitHub, pausing and resuming merges,
+the organization's name, budget and members, organization-wide secrets,
+turning strict protection off: an agent never acts as an owner (SKILL.md,
+"Human-only").
 
 ## `sema_repos_list` — `sema:org.read`
 
@@ -102,9 +105,9 @@ The plan view → [queue.md](queue.md). A newer plan answers 409 `stale_generati
 | Argument | Type | Meaning |
 |----------|------|---------|
 | `repo` | `owner/name` | **required** |
-| `action` | `pause` \| `resume` \| `retry` \| `hold` \| `release` \| `skip_blocked` \| `land` \| `cancel_land` | **required** |
+| `action` | `retry` \| `hold` \| `release` \| `skip_blocked` \| `land` \| `cancel_land` | **required**; there is no `pause` or `resume` (an owner's, in the dashboard) |
 | `number` | integer | the pull request (`retry`, `hold`, `release`) |
-| `reason` | string (≤ 500) | why (`pause`), or the note kept on a `hold` |
+| `reason` | string (≤ 500) | the note kept on a `hold` |
 | `batch_id` | uuid | `land`: the batch (or lane) to land |
 | `count` | integer ≥ 1 | `land` in queue mode: how many pull requests of the offer |
 | `members` | `[{number, head_sha}]` | `land` in queue mode: the first `count` entries of the offer, in merge order |
@@ -172,35 +175,22 @@ Rates come with their denominators, and `observed_from` says where the data star
 | `org` | slug | |
 | `include_members` | boolean | also the members, as Merget's account service lists them |
 
-Answer: `{org: {display_name, agent_access, agent_scopes, llm_budget_usd, llm_spend_month_usd, llm_budget_month, llm_budget_exhausted, …}, members? | members_error?}`. `agent_scopes` null = every permission. `members` is `{org, seats, members: [{user, username, display_name, role, added_at}]}`; `members_error` (the account service's refusal, `{code, message}`) replaces it when that service could not answer, and the settings still come back.
+Answer: `{org: {display_name, agent_access, agent_scopes, llm_budget_usd, llm_spend_month_usd, llm_budget_month, llm_budget_exhausted, …}, members? | members_error?}`. `agent_scopes` null = every permission. `members` is `{org, seats, members: [{user, username, display_name, role, added_at}]}`, each member's own role in the organization; `members_error` (the account service's refusal, `{code, message}`; `agent_relay_unavailable` or `agent_relay_refused` when Merget could not ask it for this agent) replaces it when that service could not answer, and the settings still come back. Nothing here is changed by a tool: the name, the LLM budget and the members are an owner's, in the dashboard, and the agent switch and cap are the user's.
 
-## `sema_org_update` — `sema:org.write`, owner only
-
-| Argument | Type | Meaning |
-|----------|------|---------|
-| `org` | slug | |
-| `llm_budget_usd` | number ≥ 0 \| null | the monthly LLM budget in USD; 0 = no model help at all, null = no budget |
-| `display_name` | string (≤ 100) | the organization's name; `""` restores the slug |
-| `add_member` | `{user, role?}` | `user` a user id or `@handle` of an existing Merget account; `role` `admin` \| `member` (default), never `owner` |
-| `remove_member` | string | a member's user id, never an owner's |
-
-Merget requires the organization's owner for this tool (anyone else: 403 `owner_required`). The owner role is never an agent's to give, and no agent is made an owner: never send `role: "owner"`, never `add_member` someone who already is an owner (that changes their role) and never `remove_member` an owner — an owner does those in Merget's dashboard. The name and the members are kept by Merget's account service, which then applies its own role rules to the user, as for the user's own change, and refuses an unknown user or a full organization (its own `code`, a 4xx). Every argument is checked before anything changes; the settings change first, then the members. Answer: `{org, member_added?: {org, user, role}, member_removed?: <user id>}`. Once something has changed, a later part's failure is reported in the answer (`member_add_error`, `member_remove_error`) instead of failing the call. `agent_access` and `agent_scopes` are not arguments: an agent sending them is refused (403 `session_required`).
-
-## `sema_installation_sync` — `sema:org.write`
+## `sema_installation_sync` — `sema:repos.write`
 
 `org`, `installation` (one id; omit for every installation, which also needs `sema:org.read`). Answer: `{org, installations: [{installation_id, ok, installation?, repositories?, error?}]}` — the `merget-setup` skill's tools reference.
 
-## `sema_secrets` — `sema:repos.write` with `repo`, `sema:org.write` without
+## `sema_secrets` — `sema:repos.write`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
 | `action` | `list` \| `set` \| `delete` | **required** |
-| `repo` | `owner/name` | the repository's own secrets (maintain on it); omit for the organization's (owner) |
-| `org` | slug | |
+| `repo` | `owner/name` | **required**: the repository whose secrets these are (maintain on it) |
 | `name` | string | `set`, `delete`: an upper-case letter, then up to 63 upper-case letters, digits or underscores (`NPM_TOKEN`); some names are reserved (`PATH`, `HOME`) |
 | `value` | string | `set`: one line, at most 8 KB; sent exactly as given and never echoed back |
 
-Answer: `list` → `{items: [{name, scope, created_by, updated_at, …}]}`, never a value; `set` → the stored secret's name and when; `delete` → `{deleted, name, scope}`. A repository's secret overrides an organization one of the same name. The setup step of the repository's validation recipe receives them as environment variables; the build and test commands, Merget's conflict resolution and pull requests from forks never do.
+Answer: `list` → `{items: [{name, scope, created_by, updated_at, …}]}`, the repository's own secrets (`scope: "repo"`) and the organization-wide ones it receives (`scope: "org"`), never a value; `set` → the stored secret's name and when; `delete` → `{deleted, name, scope}`. `set` and `delete` change the repository's own secrets only: the organization-wide ones are an owner's, in the dashboard (Settings › GitHub › Organization secrets), and no tool changes them. A repository's secret overrides an organization one of the same name. The setup step of the repository's validation recipe receives them as environment variables; the build and test commands, Merget's conflict resolution and pull requests from forks never do.
 
 ## `sema_docs` — `sema:org.read`
 

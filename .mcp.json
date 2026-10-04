@@ -28,10 +28,8 @@
           "sema_run_get": "Merget: one run",
           "sema_analytics": "Merget: analytics of an organization",
           "sema_org_get": "Merget: organization settings",
-          "sema_org_update": "Merget: change an organization",
-          "sema_github_connect": "Merget: connect GitHub",
           "sema_installation_sync": "Merget: re-check a GitHub installation",
-          "sema_secrets": "Merget: validation secrets",
+          "sema_secrets": "Merget: a repository's validation secrets",
           "sema_docs": "Merget: documentation"
         }
       }

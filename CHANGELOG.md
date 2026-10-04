@@ -9,39 +9,45 @@ which tools `.mcp.json` titles.
 
 ## 0.3.0 — 2026-10-03
 
-Needs the Merget release that serves the sixteen operating tools and the
-write permissions (`sema:org.read`, `sema:repos.write`, `sema:queue.write`,
-`sema:org.write`), and for the organization's name and members the release
-of Merget's account service that lets agents change them; the twelve read
-tools are unchanged.
+Needs the Merget release that serves the fourteen operating tools and the
+write permissions (`sema:org.read`, `sema:repos.write`, `sema:queue.write`);
+the member list (`sema_org_get` with `include_members`) also needs the
+release of Merget's account service that answers it to an agent. The twelve
+read tools are unchanged.
 
 - New skill `merget-setup`: the first run, from `sema_status` to a
-  repository Merget works on — connecting GitHub (`sema_github_connect`
-  hands the human the install URL), re-checking (`sema_status`,
-  `sema_installation_sync`), enabling a first repository with
-  `sema_repo_update`, and choosing its mode from the readiness verdict of
-  `sema_repo_settings_get`. Permissions are chosen on the Merget sign-in
+  repository Merget works on — handing the human the dashboard page where
+  they connect GitHub (the next step `sema_status` names), re-checking
+  (`sema_status`, `sema_installation_sync`), enabling a first repository
+  with `sema_repo_update`, and choosing its mode from the readiness verdict
+  of `sema_repo_settings_get`. Permissions are chosen on the Merget sign-in
   page and changed under Settings › Agents; on `insufficient_scope`,
-  `agent_scope_disabled` and the other refusals the agent asks the human
-  and never retries. References: `setup-states.md` (every setup state and
-  next step, and who acts), `tools.md`.
+  `agent_scope_disabled`, `session_required` and the other refusals the
+  agent asks the human and never retries. References: `setup-states.md`
+  (every setup state and next step, and who acts), `tools.md`.
 - New skill `merget-operate`: repository settings (`policy` as a JSON merge
   patch checked against `policy_schema`; Merget-managed engine limits are
   not settable), the queue's actions and their guards (confirm before a
-  land, merge anyway or a cancel), runs, analytics, the organization's name,
-  members (confirm before adding or removing one; added as `member` or
-  `admin`, never as `owner`) and LLM budget, installations, validation
-  secrets (prefer the human pasting a value in the dashboard over passing
-  it through the transcript) and the docs, and what stays human-only:
-  deleting an organization or an account, the owner role (no agent makes
-  anyone an owner, changes an owner's role or removes an owner, and none
-  is made one), and every agent-access control. References: `tools.md`,
-  `policy.md`, `queue.md`. Its refusal table includes
-  `agent_relay_unavailable` (503) and `agent_relay_refused` (502): Merget
-  relays an agent's member and organization-name changes to its account
-  service, and these mean that relay failed — Merget's fault, never a
-  permission to ask the human for.
-- `.mcp.json`: IDE titles for the sixteen operating tools, `sema_status`
+  land, merge anyway or a cancel), runs, analytics, the organization's
+  settings and members (read-only), installations (re-check), a
+  repository's validation secrets (prefer the human pasting a value in the
+  dashboard over passing it through the transcript) and the docs, and what
+  stays human-only. References: `tools.md`, `policy.md`, `queue.md`.
+- Agents never act as an organization owner: an agent's role is member in
+  every organization, whoever its user is, and no permission changes that.
+  The skills hand every owner step to the human, in Merget's dashboard —
+  connecting GitHub, pausing and resuming merges, renaming the organization
+  and its LLM budget, adding and removing members, organization-wide
+  validation secrets and turning strict protection off — and no agent
+  grants, receives or transfers the owner role. With deleting an
+  organization or an account, every agent-access control and the browser
+  steps, that is `merget-operate`'s human-only list, and `session_required`
+  is the refusal that marks it.
+  `agent_relay_unavailable` (503) and `agent_relay_refused` (502) concern
+  the member list only: Merget could not ask its account service for it on
+  the agent's behalf — Merget's fault, never a permission to ask the human
+  for.
+- `.mcp.json`: IDE titles for the fourteen operating tools, `sema_status`
   to `sema_docs`.
 - Tool ids: the skills still named the tools after the MCP server's name
   before 0.2.0, `sema`. Through this plugin Claude Code names them
@@ -56,12 +62,13 @@ tools are unchanged.
   named, and merging, re-running and queue changes point at
   `merget-operate` instead of reading as unavailable.
 - README: browser sign-in replaces the `sema login --legacy` header helper
-  and the `cargo install` of the CLI; the one-line setup prompt; the
-  permissions; connecting from claude.ai, Claude Desktop, Claude Code,
-  Cursor and VS Code, with the clients that wait on open client
-  registration, and removing and re-adding a connection made before the
+  and the `cargo install` of the CLI; the one-line setup prompt; what
+  agents can and cannot do; the six permissions; connecting from claude.ai,
+  Claude Desktop, Claude Code, Cursor, VS Code, Codex and OpenCode, each of
+  which registers itself on its first connection; and removing and
+  re-adding a connection that stopped working, such as one made before the
   2026-09-29 sign-in move.
-- Plugin description: twenty-eight tools, no longer twelve read-only ones.
+- Plugin description: twenty-six tools, no longer twelve read-only ones.
   The marketplace gains a description of its own (`metadata.description`),
   so `claude plugin validate --strict` passes.
 
