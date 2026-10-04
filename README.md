@@ -61,10 +61,11 @@ in as [Other agents](#other-agents) describes.
 Run `/mcp`, select the Merget server — `plugin:merget:merget` — and
 authenticate. Claude Code opens Merget's sign-in service,
 `https://auth.merget.ai`, in your browser: sign in with your Merget account
-and its second factor, check the consent page and select **Approve**. There
-is nothing else to install and no token to copy; Claude Code keeps the
-tokens itself. If `/mcp` lists a server named `merget` instead, one you
-added yourself is in the way: remove it as
+and its second factor, check the consent page and select **Approve**, or
+continue as [you approved before](#when-you-approved-before). There is
+nothing else to install and no token to copy; Claude Code keeps the tokens
+itself. If `/mcp` lists a server named `merget` instead, one you added
+yourself is in the way: remove it as
 [Upgrading from 0.2.0](#upgrading-from-020) describes.
 
 You need a Merget account with a second factor set up, in an organization
@@ -73,7 +74,15 @@ to approve.
 
 ### What the consent page shows
 
-- **Application** — the name the client registered under.
+- **Application** — the name the client registered under. A client with a
+  published identity, which it publishes at a web address instead of
+  registering, is named by that address's host, with the name it gives
+  itself underneath as the host's claim: Merget checked the address, not
+  the name. Once Merget accepts published identities, Claude Code signs in
+  with claude.ai's, and the page reads `claude.ai` — "claude.ai calls it
+  “Claude Code”". Because Claude Code receives the approval on your
+  computer, a line under it adds that any app on this computer can ask in
+  claude.ai's name: approve only if you just started this yourself.
 - **Sends access to** — where the approval goes: an address on your own
   computer, marked *(this computer)*, for a client that receives it there,
   as Claude Code and Cursor's desktop app do (`localhost (this computer)`);
@@ -87,7 +96,11 @@ to approve.
   Merget doesn't list, but check that the address belongs to the client
   you are connecting.
 - **Client ID** — the id the client was given (`dcr_…` for one that
-  registered itself).
+  registered itself), or the address of a published identity: Claude
+  Code's is `https://claude.ai/oauth/claude-code-client-metadata`. A Claude
+  Code that registered before Merget accepted published identities keeps
+  its `dcr_…` registration until you clear its authentication
+  ([Signing in again](#signing-in-again)).
 - **Merget deployment** — `https://sema.merget.ai/mcp`.
 - **It will be allowed to** — one line per scope on offer. For the read
   scopes and `offline_access`, the lines are:
@@ -114,14 +127,40 @@ and the client renews it on its own (a refresh token lasts 30 days and is
 replaced each time it is used). A client granted no `offline_access` signs
 in again when the hour is up.
 
+### When you approved before
+
+Once Merget remembers approvals, it does not ask you twice about a client
+with a published identity, such as Claude Code with claude.ai's, or about
+Merget's CLI: when you already approved this request — the same
+permissions, sent to the same place — and that approval still stands and
+was used in the last 90 days, the page names the application and the
+organization you approved, says where access goes, and reads either
+
+- **Continue as before?**, when your browser was already signed in to
+  Merget: select **Continue as** and your name to approve it again; or
+- **Continuing as before…**, when you have just signed in on that page: it
+  approves by itself after a moment.
+
+Continue only if you just started this yourself. **Stop and review** shows
+the whole consent page instead, to choose another organization or select
+**Deny**. You get the whole page anyway when you approved the client for
+more than one organization, and always for a client that registered itself
+(`dcr_…`), which has a new registration for each connection.
+
 ### Signing in again
 
 When the server shows as failed — as one signed in before Merget moved its
 sign-in to `auth.merget.ai` does — run `/mcp`, select the Merget server,
-choose **Clear authentication** and authenticate again. To choose another
+choose **Clear authentication** and authenticate again. When `/mcp` does
+not offer **Clear authentication**, run
+`claude mcp logout plugin:merget:merget` in a terminal first. Either way
+Claude Code signs this connection out at Merget too and deletes what it
+stored for Merget, its registration included, so it signs in afresh — with
+claude.ai's published identity once Merget accepts them. To choose another
 organization or pick up a scope, first revoke the client in Merget's
-dashboard (Settings → Agents → **Authorized agents**), then do the same.
-Revoking it there is also how you cut a client off.
+dashboard (Settings → Agents → **Authorized agents**), then do the same, or
+select **Stop and review** on a page that continues as before. Revoking it
+there is also how you cut a client off.
 
 Access is gated on the Merget side too: an organization owner can switch
 agents off (dashboard → Settings → Agents) and each repository can allow
@@ -133,7 +172,9 @@ Any MCP client with OAuth support connects the same way: add the remote
 (Streamable HTTP) server `https://sema.merget.ai/mcp` and connect. Merget's
 401 names `https://sema.merget.ai/.well-known/oauth-protected-resource/mcp`,
 which points at `https://auth.merget.ai`; the client registers itself there
-(RFC 7591), runs the PKCE flow and opens the consent page above.
+(RFC 7591) — or, once Merget accepts published identities, a client that
+has one presents it instead, as Claude Code does — runs the PKCE flow and
+opens the consent page above.
 
 **Claude Code without the plugin** —
 `claude mcp add --transport http --scope user merget https://sema.merget.ai/mcp`,

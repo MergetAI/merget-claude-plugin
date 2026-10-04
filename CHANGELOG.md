@@ -63,6 +63,18 @@ which tools `.mcp.json` titles.
   the conflict and review counts and `findings[].scope`; the advisory
   sentence names review findings; finding kinds are the served ones
   (`broken-reference`, `interference-dataflow`, …).
+- README: the consent page for a client with a published identity, which
+  Claude Code uses once Merget accepts them — the page names the host that
+  publishes it (`claude.ai`, which "calls it “Claude Code”"), adds that any
+  app on this computer can ask in that host's name, and shows the
+  identity's address as the Client ID
+  (`https://claude.ai/oauth/claude-code-client-metadata`); a Claude Code
+  that registered before keeps its `dcr_…` registration until its
+  authentication is cleared. What the page shows once Merget remembers
+  approvals (**Continue as before?**, **Continuing as before…**, **Stop and
+  review**), and `claude mcp logout plugin:merget:merget` for when `/mcp`
+  offers no **Clear authentication**; either way Claude Code signs the
+  connection out at Merget too.
 
 ## 0.2.0 — 2026-09-10
 
