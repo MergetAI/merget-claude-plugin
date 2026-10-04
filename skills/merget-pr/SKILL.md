@@ -1,12 +1,12 @@
 ---
 name: merget-pr
-description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state) through the `merget` MCP server or the `sema` CLI. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
+description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state) through the `merget` MCP server or the `sema` CLI. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, review findings, textual conflicts (with the target or with a pull request ahead in the queue), a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
 disable-model-invocation: false
 ---
 
 # Merget pull request findings
 
-Merget is a semantic merge queue. For every pull request it builds code property graphs of the four trees a merge involves (base, the PR's head, the target's tip, and the assembled candidate), compares them, and reports **findings**: references that break when the branches meet (Layer 1), interactions between what the two sides changed (Layer 2), and a **brief** that explains the conflict in prose (Layer 3). It runs in one of three repository **modes**:
+Merget is a semantic merge queue. For every pull request it builds code property graphs of the four trees a merge involves (base, the PR's head, the target's tip, and the assembled candidate), compares them, and reports **findings**: files git could not merge (textual conflicts, layer 0), references that break when the branches meet (Layer 1), interactions between what the two sides changed (Layer 2), and a **brief** that explains the conflict in prose (Layer 3). Once Merget serves it, it also reviews the pull request against its **predicted base** — the target plus the pull requests queued ahead of it — and reports what the pull request alone breaks there (**review** findings). It runs in one of three repository **modes**:
 
 | Mode | What Merget does |
 |------|----------------|
@@ -39,11 +39,12 @@ All of it is read-only. Merget never changes a PR, a branch or a queue on your b
    - `superseded` — the head moved and a newer run is in progress. Re-read once it finishes.
    - `failed` — the latest run failed or was cancelled. There is **no verdict**; open `run.details_url`, never report the PR as clean.
    - `blocked` / `waiting` / `clean` / `advisory` — read the counts and the findings.
-   - `conflicts` — once Merget serves it: the repository is in `advisory` mode and git could not merge the pull request (a textual conflict Merget did not resolve, or a run that ended `conflicts`). Nothing is enforced, but it is **never clean**: say that git cannot merge the pull request as it stands. The findings are still counted beside it; read them as for `advisory`. `interpretation.next_steps` names each conflicted file, or sends you to `run.details_url` when the document lists none. In `queue` or `autonomous` mode the same pull request reads `blocked`, or `waiting`.
+   - `conflicts` — once Merget serves it: the repository is in `advisory` mode and git could not merge the pull request into what it will meet, the target or the target with the pull requests queued ahead of it (a textual conflict Merget did not resolve, or a run that ended `conflicts`). Nothing is enforced, but it is **never clean**. What to say depends on what each conflict is with, which its `class: conflict` finding's `message` names: "Conflict with main in …" — git cannot merge it into `main` as it stands, so the author merges `main` and resolves; "Conflict with #1 (ahead in the queue) in …" — only with a pull request that has not merged yet, so GitHub shows no conflict and there is **nothing to do until #1 merges**; "Conflict with main and #1 (ahead in the queue) in …" — resolve the part with `main` now and check the file again after #1 merges. The sentences are in `references/interpretation.md`. The findings are still counted beside it; read them as for `advisory`. `interpretation.next_steps` names each conflicted file ("resolve the merge conflict", whatever the side), or sends you to `run.details_url` when the document lists none. In `queue` or `autonomous` mode the same pull request reads `blocked`, or `waiting`.
    - Any other value is newer than this skill: never report it as clean; quote it and point at `run.details_url`.
 3. If `run.stale` is `true`, the findings describe an older head than the PR's current one: say which sha was analysed and treat the findings as provisional.
-4. Walk `findings` by `class` (see the vocabulary), then `interpretation.next_steps`, which already names the file and line to look at for each blocking finding.
-5. When the user asks *why* a finding exists or what to change, switch to the `merget-graph` skill (`sema_graph_finding` with the finding's `fingerprint`) rather than speculating from the message alone.
+4. Walk `findings` by `class` (see the vocabulary), then `interpretation.next_steps`, which already names the file and line to look at for each blocking and each review finding.
+5. Once Merget serves the review reading: `verdict.review_count` counts the pull request's own breaks against its predicted base (`class: review`, `scope: review`), and `verdict.inherited` lists breaks it inherits from pull requests ahead of it (`{pr, findings, example}`). Name the review findings as this pull request's to fix, even when they do not block; name inherited breaks as #`pr`'s, never counted here or put to this author.
+6. When the user asks *why* a finding exists or what to change, switch to the `merget-graph` skill (`sema_graph_finding` with the finding's `fingerprint`) rather than speculating from the message alone.
 
 Re-read after the user pushes: fingerprints are stable across runs and rebases of the same problem, so `findings[].fingerprint` lets you say which findings are new, which persisted and which went away.
 
@@ -51,14 +52,17 @@ Re-read after the user pushes: fingerprints are stable across runs and rebases o
 
 | Term | Meaning |
 |------|---------|
-| **Layer 1** (`layer: 1`) | A reference that resolves differently, or not at all, once the branches meet: a call to a removed definition, a signature mismatch, a duplicate definition. The only layer that can block. |
-| **Layer 2** (`layer: 2`) | An interaction between the two sides' changes: data flow, control flow, a confluence point, an override. **Always advisory**, whatever its provenance. |
+| **Layer 0** (`layer: 0`, class `conflict`) | A textual conflict: a file git could not merge (`kind: textual-conflict`). Its `message` says what it is with: the target ("Conflict with main in …"), pull requests ahead in the queue that have not merged ("Conflict with #1 (ahead in the queue) in …"), both, or "what it is with was not recorded". Never a blocking finding; one Merget did not resolve keeps the verdict from `clean`. |
+| **Layer 1** (`layer: 1`) | A reference that resolves differently, or not at all, once the branches meet: a call to a removed definition, a signature mismatch, a duplicate definition. Blocks when its provenance is `precise`. |
+| **Layer 2** (`layer: 2`) | An interaction between the two sides' changes: data flow, a confluence point, an override. **Advisory** unless Merget minted it `precise` — its evidence chain precise end to end and its calibrated confidence over the threshold for its language and kind — which `class: blocking` says. |
 | **Layer 3** | The brief: prose sections about the conflict. Never a finding class. |
 | **provenance** | How confident the resolution is: `precise` (a compiler or language server resolved it) or `syntactic` (name matching). `resolver` names the tool. |
-| **class** | The one label to act on: `blocking`, `warning`, `advisory`, `shadowed`, `suppressed` (rules in `references/interpretation.md`). |
+| **class** | The one label to act on: `blocking`, `warning`, `advisory`, `shadowed`, `suppressed`, `conflict`, `review` (rules in `references/interpretation.md`). |
+| **review** (`scope: review`) | Once Merget serves it: a finding of the review reading — what this pull request alone breaks against its predicted base (the target plus the pull requests queued ahead) that the predicted base did not break, in the Layer-1 kinds. `class: review` and counted in `verdict.review_count`: advisory, unless the repository sets `review.l1` to `blocking`, when a precise one is `class: blocking`. A finding with no `scope` is an interaction finding (what the merge breaks). |
+| **inherited** (`verdict.inherited`, `run.inherited`) | Once Merget serves it: breaks of pull requests ahead that this one inherits through its predicted base, one `{pr, findings, example}` per pull request. They are that pull request's, reported on its own review; never counted, titled or blocking here. |
 | **shadowed** (`shadowed_by: <path>`) | The finding rests on a file that is textually conflicted; it cannot be trusted until that conflict is resolved. |
 | **suppressed** | Dismissed on GitHub; listed for completeness only. |
-| **lifecycle** | `new_open` (first seen this run), `still_open` (seen before), `suppressed`. |
+| **lifecycle** | `new_open` (first seen this run), `still_open` (seen before), `suppressed`; on a conflict, `resolved` when Merget resolved it. |
 | **verdict.would_block_in_queue_mode** | For advisory repositories: what queue mode would do with the same findings. |
 | **run.stale** | The run analysed an older head than the PR's current one. |
 | **run.prepared_head** | The certified merge commit Merget published (queue and autonomous modes only). |
@@ -71,11 +75,14 @@ Re-read after the user pushes: fingerprints are stable across runs and rebases o
 
 These restate the rules the document itself carries in `interpretation.rules`; the document wins if they ever differ.
 
-- **Only Layer 1 findings with `precise` provenance block.** Say "blocking" only for `class: blocking`.
-- **Never call a Layer 2 finding blocking**, even when its provenance is `precise` and its message sounds alarming. It is an interaction to review, not a gate.
+- **Only findings with `precise` provenance block, whatever their layer** — except a review finding, which blocks only where the repository sets `review.l1` to `blocking`. Say "blocking" only for `class: blocking`; read `class`, never `precise` alone.
+- **A Layer 2 finding is an interaction to review**, not a gate, unless its `class` is `blocking` (Merget minted it precise end to end, with calibrated confidence). An alarming message does not make it blocking.
 - A `syntactic` Layer 1 finding is a **warning**: report it with its provenance visible ("syntactic — name matching, may be a false positive") and suggest confirming it with `sema_graph_callers` or by reading the code.
 - **Advisory mode enforces nothing.** When `repo.mode` is `advisory` and `blocking_count > 0`, the sentence is *"this would block in queue mode"*, never *"this PR is blocked"*.
 - **`shadowed` → fix the conflict first.** The finding sits on a conflicted file; do not act on its message before the merge conflict in `shadowed_by` is resolved, then re-read.
+- **A `conflict` is a file git could not merge, never a blocking finding.** One Merget did not resolve (`lifecycle` other than `resolved`, counted in `run.counts.unresolved_conflict`) keeps the verdict from `clean`: `blocked` where the mode enforces, `conflicts` where nothing does (`advisory` from a Merget that does not serve `conflicts` yet). Only a conflict with the target is the author's to resolve now; one only with pull requests ahead waits until they merge. `lifecycle: resolved` means Merget resolved it.
+- **A `review` finding is this pull request's own break** against its predicted base. It does not block unless the repository says so, but the merged tree is broken either way: say what to fix on the branch, never "no action is required". `inherited` breaks are the named pull request's: mention them, never count them here.
+- A finding measured at or below 10% confidence is withheld: it is in no list and no count, and never blocks.
 - `waiting` means no blocking findings but the PR is not first in its plan or a GitHub requirement is unmet; `queue.blockers` says which. It is not a defect in the PR.
 - `queue.enforcement.status` other than `enforced`/`not_applicable` means Merget's verdict may not be what GitHub is enforcing; mention it when the user asks why a PR merged or did not.
 - Counts in `verdict` and `run.counts` agree by construction; `interpretation.by_class` lists the fingerprints per class if you need to cross-reference.

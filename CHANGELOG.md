@@ -47,6 +47,22 @@ which tools `.mcp.json` titles.
   beside it; the skill says so, with the sentence to use and the wording
   to avoid. A verdict status the skill does not list is never reported as
   clean.
+- Skill `merget-pr`: a conflict is said by what it is with, which its
+  finding's message names: with the target, git cannot merge the pull
+  request as it stands; only with a pull request ahead in the queue,
+  GitHub shows no conflict yet and there is nothing to do until that one
+  merges. New classes in the vocabulary and in the classification order as
+  the document applies it: `conflict` (layer 0, a file git could not merge;
+  `lifecycle` `resolved` when Merget resolved it) and, once Merget serves
+  the review reading, `review` — what the pull request alone breaks against
+  its predicted base, classed by its own `blocking` flag ahead of the
+  precise rule, which now reads "precise, whatever the layer" as the
+  document's does. The schema gains `verdict.conflict_count`,
+  `verdict.review_count`, `verdict.inherited` and `run.inherited` (breaks
+  inherited from a pull request ahead: that one's, never counted here),
+  the conflict and review counts and `findings[].scope`; the advisory
+  sentence names review findings; finding kinds are the served ones
+  (`broken-reference`, `interference-dataflow`, …).
 
 ## 0.2.0 — 2026-09-10
 
