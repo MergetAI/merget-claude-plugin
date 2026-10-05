@@ -7,6 +7,69 @@ by the API (`api_version`, the `Sema-Api-Version` response header): a plugin
 release never changes what the server answers, only what the skills teach and
 which tools `.mcp.json` titles.
 
+## 0.3.0 — 2026-10-05
+
+Needs the Merget release that serves the fourteen operating tools and the
+write permissions (`sema:org.read`, `sema:repos.write`, `sema:queue.write`);
+the member list (`sema_org_get` with `include_members`) also needs the
+release of Merget's account service that answers it to an agent. The twelve
+read tools are unchanged.
+
+- New skill `merget-setup`: the first run, from `sema_status` to a
+  repository Merget works on — handing the human the dashboard page where
+  they connect GitHub (the next step `sema_status` names), re-checking
+  (`sema_status`, `sema_installation_sync`), enabling a first repository
+  with `sema_repo_update`, and choosing its mode from the readiness verdict
+  of `sema_repo_settings_get`. Permissions are chosen on the Merget sign-in
+  page and changed under Settings › Agents; on `insufficient_scope`,
+  `agent_scope_disabled`, `session_required` and the other refusals the
+  agent asks the human and never retries. References: `setup-states.md`
+  (every setup state and next step, and who acts), `tools.md`.
+- New skill `merget-operate`: repository settings (`policy` as a JSON merge
+  patch checked against `policy_schema`; Merget-managed engine limits are
+  not settable), the queue's actions and their guards (confirm before a
+  land, merge anyway or a cancel), runs, analytics, the organization's
+  settings and members (read-only), installations (re-check), a
+  repository's validation secrets (prefer the human pasting a value in the
+  dashboard over passing it through the transcript) and the docs, and what
+  stays human-only. References: `tools.md`, `policy.md`, `queue.md`.
+- Agents never act as an organization owner: an agent's role is member in
+  every organization, whoever its user is, and no permission changes that.
+  The skills hand every owner step to the human, in Merget's dashboard —
+  connecting GitHub, pausing and resuming merges, renaming the organization
+  and its LLM budget, adding and removing members, organization-wide
+  validation secrets and turning strict protection off — and no agent
+  grants, receives or transfers the owner role. With deleting an
+  organization or an account, every agent-access control and the browser
+  steps, that is `merget-operate`'s human-only list, and `session_required`
+  is the refusal that marks it.
+  `agent_relay_unavailable` (503) and `agent_relay_refused` (502) concern
+  the member list only: Merget could not ask its account service for it on
+  the agent's behalf — Merget's fault, never a permission to ask the human
+  for.
+- `.mcp.json`: IDE titles for the fourteen operating tools, `sema_status`
+  to `sema_docs`.
+- `sema_graph_intent` described as what it returns: the pull request's
+  title, Merget's brief of its latest finished run and the intents recorded
+  per finding, for a `pr:<n>:head` or `pr:<n>:base` rev (or a pull
+  request's head sha); never its description, commit messages or prompts.
+- `merget-pr` and `merget-graph`: a missing scope is turned on under
+  Settings › Agents or by authorizing again, `agent_scope_disabled` is
+  named, and merging, re-running and queue changes point at
+  `merget-operate` instead of reading as unavailable.
+- README: the one-line setup prompt; what agents can and cannot do, in
+  place of 0.2.1's sentence that both skills only read; the six
+  permissions, which the consent page now offers as one checkbox each, all
+  ticked, for you to untick, and which you change later under
+  Settings › Agents; the organization's permission cap and the repository
+  access level that changes need; `/reload-plugins` among the install
+  commands; `codex mcp add` for Codex; and removing and re-adding a
+  connection that stopped working, in each client, such as one made before
+  the 2026-09-29 sign-in move.
+- Plugin description: twenty-six tools, no longer twelve read-only ones.
+  The marketplace gains a description of its own (`metadata.description`),
+  so `claude plugin validate --strict` passes.
+
 ## 0.2.1 — 2026-10-05
 
 - README: Claude Code signs in through the browser. After installing, run

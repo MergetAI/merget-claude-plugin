@@ -1,4 +1,7 @@
 {
+  "metadata": {
+    "description": "Merget's plugin for Claude Code: set Merget up, operate its merge queue, and read its findings and code graphs."
+  },
   "name": "merget-queue",
   "owner": {
     "name": "Merget AI"
@@ -9,11 +12,11 @@
         "name": "Merget AI"
       },
       "category": "development",
-      "description": "Semantic merge intelligence for code review and conflict resolution. Pull a pull request's Merget analysis into the session: findings and why each one blocks or advises, the merge verdict, queue position, and what a clean-looking text merge broke. Query Merget's code property graph of any commit — symbols, callers, callees, def-use chains, dependence slices, graph diffs and a finding's own slice — so an agent reasons over the cross-file consequences of a change instead of guessing from the diff. Ships the merget-pr and merget-graph skills, which teach Claude how to read a findings document and how to widen a slice within a token budget, and connects to the Merget MCP server (twelve read-only tools). Built for reviewing risky merges, chasing broken references and interference across files, and giving coding agents precise dependency context.",
+      "description": "Semantic merge intelligence, and a merge queue your agent can run. Pull a pull request's Merget analysis into the session: findings and why each one blocks or advises, the merge verdict, queue position, and what a clean-looking text merge broke. Query Merget's code property graph of any commit — symbols, callers, callees, def-use chains, dependence slices, graph diffs and a finding's own slice — so an agent reasons over the cross-file consequences of a change instead of guessing from the diff. Set Merget up and operate it as its dashboard does: walk the user through connecting GitHub, enable repositories and choose their mode, change repository settings, drive the merge queue (retry, hold, merge what's ready, land), read runs and analytics, and manage repository validation secrets — within the permissions the user grants at sign-in, never as an organization owner (an owner's steps stay with the human, in Merget's dashboard), asking before anything merges. Ships the merget-setup, merget-operate, merget-pr and merget-graph skills and connects to the Merget MCP server: twenty-six tools, twelve that read pull requests' analyses and commits' graphs and fourteen that set up and operate Merget.",
       "homepage": "https://sema.merget.ai",
       "name": "merget",
       "source": "./",
-      "version": "0.2.1"
+      "version": "0.3.0"
     }
   ]
 }
