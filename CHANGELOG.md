@@ -59,7 +59,10 @@ read tools are unchanged.
   which prints text, list and object details as JSON in a code span. It is
   never taken from the `` `Name` (`slug`) `` label Merget's headings and
   messages write, the name in a code span of its own, and the human never
-  sees those backticks.
+  sees those backticks. The agent says the name as plain text, its
+  markdown characters escaped, never as a link or markup, and calls a name
+  that reads like a URL, an address or instructions the organization's
+  name.
   `consented_org_name`, `next_step.org_name`, `org_name` on
   `agent_scope_disabled`, on the organization's `agent_access_disabled` and
   on `sema_installation_sync`'s answer, and `organizations` on the

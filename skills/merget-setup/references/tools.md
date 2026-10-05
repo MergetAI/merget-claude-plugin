@@ -52,7 +52,8 @@ none: then its slug is its name). Merget's own markdown labels the
 organization with the name and the slug each in a code span,
 `` `Acme` (`u-7d9b0c3e`) `` (the slug alone, `` `u-7d9b0c3e` ``, when there
 is no name): take the name from this field, never from that label, and say
-it without the backticks. `consented_org` is the organization this agent
+it as plain text, without the backticks and never as a link or markup
+(SKILL.md, "Naming an organization"). `consented_org` is the organization this agent
 was approved for (null: all the user's), and `consented_org_name` its
 display name; the top-level `next_step` carries `org` and `org_name` the
 same way. A refusal has no `structuredContent`: there the name is the
