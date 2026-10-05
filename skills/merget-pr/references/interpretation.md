@@ -100,7 +100,7 @@ comparison.
 
 **Advisory repository, one precise L1, one L2, one shadowed L1**
 
-> Merget analysed head `9c1f2e4a` (current). The repository is in advisory mode, so nothing is enforced, but this **would block in queue mode**: one precise Layer-1 finding — `src/sds.c:430` "call to `sdscatlen` resolves to a definition removed on main" (`libclang`). One advisory interaction: `src/sds.c:412` data flow between "Batch sds writes" (this PR) and "Bound write() by the caller's buffer" (main) — worth a look at the meeting point, not a gate. One finding in `src/quality.c` is shadowed by the merge conflict in that file; resolve the conflict first and re-read.
+> Merget analysed head `9c1f2e4a` (current). The repository is in advisory mode, so nothing is enforced, but this **would block in queue mode**: one precise Layer-1 finding — `src/sds.c:430` "call to `sdscatlen` resolves to a definition removed on main". One advisory interaction: `src/sds.c:412` data flow between "Batch sds writes" (this PR) and "Bound write() by the caller's buffer" (main) — worth a look at the meeting point, not a gate. One finding in `src/quality.c` is shadowed by the merge conflict in that file; resolve the conflict first and re-read.
 
 **Queue repository, clean but waiting**
 

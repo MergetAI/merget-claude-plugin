@@ -27,17 +27,17 @@ named exactly.
 
 ```json
 {"file": "src/sds.c", "line": 301, "line_end": 318, "name": "sdscat", "full_name": "sds.c::sdscat",
- "kind": "METHOD", "key": "sds.c::sdscat#METHOD", "provenance": {"class": "precise", "resolver": "sema-link:name"}}
+ "kind": "METHOD", "key": "sds.c::sdscat#METHOD", "provenance": {"class": "precise", "resolver": "name"}}
 ```
 
 `kind` is the CPG node label (`METHOD`, `TYPE_DECL`, `CALL`, `IDENTIFIER`,
 …); `key` is deterministic across rebuilds. `provenance` is `null` when
-the node itself needed no resolution; otherwise `resolver` names the
-linker pass that made the edge — `sema-link:name` (a name binding, class
-`precise` or `syntactic`) or `sema-link:receiver` (the receiver-typed
-pass, class `receiver`). The `resolver` of a *finding* in the findings
-document is a different field and names the frontend (`libclang`,
-`tsserver`, `native`, …).
+the node itself needed no resolution; otherwise `class` is the tier
+(`precise` or `syntactic`) and `resolver` names the pass that made the
+edge — `name` (a name binding) or `receiver` (a method call resolved
+through the declared type of its receiver). The class `receiver` is left
+for an edge no pass graded. A *finding* in the findings document carries
+its tier in `provenance` alone; its `resolver` is always `null`.
 
 **The graph document** (every answer):
 
@@ -81,7 +81,8 @@ Use it to find exact locators before `slice`/`callers`, and to confirm a file's 
 `result: {direction, method: NodeView, rows: [{node: NodeView, site: NodeView | null, hop, via: [name], provenance: {class, resolver}}]}` sorted `(file, line, key)`, at most 200 rows then `truncated`. `site` is the call site, `hop` 1 or 2, `via` the method names a second-hop row went through.
 
 A row's `provenance.class` of `syntactic` or `receiver` means the edge came
-from name matching or a receiver heuristic. An empty `rows` with a
+from name matching, a guess or no grading at all, whichever pass made it
+(its `resolver`). An empty `rows` with a
 `provenance_note` saying resolution is syntactic for this language is
 "no callers found (syntactic)", not "no callers".
 

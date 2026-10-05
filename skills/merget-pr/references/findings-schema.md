@@ -60,8 +60,8 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `kind` | string | `textual-conflict` (layer 0); `broken-reference`, `signature-drift`, `deleted-dependency`, `duplicate-definition` (L1, and review findings); `interference-dataflow`, `interference-confluence`, `interference-override` (L2) |
 | `class` | string | `blocking` \| `warning` \| `advisory` \| `shadowed` \| `suppressed` \| `conflict` \| `review` — the label to act on |
 | `scope` | string, absent | once Merget serves it: `review` for a finding of the review reading (this PR against its predicted base); absent for an interaction finding |
-| `provenance` | string | `precise` \| `syntactic`, or `git` for a conflict (resolver `merge-tree`) |
-| `resolver` | string \| null | the tool that resolved it (`libclang`, `tsserver`, `native`, …) |
+| `provenance` | string | the tier: `precise` \| `syntactic`, or `git` for a conflict |
+| `resolver` | null | always `null`: Merget serves the provenance tier only |
 | `precise` | bool | `provenance == "precise"` |
 | `blocking` | bool | the engine's flag; always equals `class == "blocking"` |
 | `file`, `line` | string \| null, int \| null | where the finding is anchored |
