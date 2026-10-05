@@ -69,6 +69,11 @@ read tools are unchanged.
   per detail, and points at `_meta["sema.error"]` for the values; the
   `merget-graph` and `merget-pr` references said the text was the body
   itself.
+- `merget-pr`: `sema whoami` stays in the safe set, which now says it is not
+  purely local: to name the token's organization it sends the token to
+  `GET /v1/me` on the Merget API that token was issued for, and to no other,
+  when the token holds `sema:org.read` — among `sema login`'s default
+  scopes from the `sema` release that names the organization.
 - `.mcp.json`: IDE titles for the fourteen operating tools, `sema_status`
   to `sema_docs`.
 - Tool ids: the skills still named the tools after the MCP server's name
