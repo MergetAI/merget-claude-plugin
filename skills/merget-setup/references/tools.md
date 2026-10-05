@@ -4,12 +4,18 @@ Each tool below is `sema_<name>` on the `merget` MCP server
 (`mcp__plugin_merget_merget__sema_<name>` in Claude Code through this
 plugin). A success answers markdown for you in `content[0].text` and the
 document itself in `structuredContent`. A refusal is a result with
-`isError: true` whose text is `error <code> (HTTP <status>): <message>`
-followed by one `key: value` line per detail: a number, a boolean or null
-as it is (`retryable: true`), a text, a list or an object as its JSON in a
-code span (`` org_name: `"Acme"` ``). The same body, plain JSON, is in
-`_meta["sema.error"]`: read a detail's value there, not from the text. The
-table of codes is in SKILL.md, "When a call is refused".
+`isError: true` and no `structuredContent`, whose text is
+`error <code> (HTTP <status>): <message>` followed by one `key: value` line
+per detail. Read a detail's value from its line. A number, a boolean or
+null stands bare (`retryable: true`; a bare `org_name: null` means the
+organization has no name). A text, a list or an object is JSON inside a code
+span: decode that JSON for the value, so `` org_name: `"Acme"` `` means the
+name Acme and `` org: `"u-7d9b0c3e"` `` the slug u-7d9b0c3e. A value that
+itself holds backticks gets a longer run of them as its delimiter; the JSON
+is everything between the two delimiters. The same body, as plain JSON, is
+in `_meta["sema.error"]` for a client that exposes it; Claude Code passes
+only the text to the model. The table of codes is in SKILL.md, "When a call
+is refused".
 
 `org` is an organization's slug (`^[A-Za-z0-9_.-]{1,100}$`): the identifier
 you pass, and the segment in Merget's URLs; name the organization to the

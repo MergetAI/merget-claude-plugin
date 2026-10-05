@@ -5,12 +5,16 @@ Each tool is `sema_<name>` on the `merget` MCP server
 plugin). A success answers markdown for you in `content[0].text` and the
 document itself in `structuredContent`; a long document's text is cut at
 about 12,000 characters with a line pointing at `structuredContent`. A
-refusal is a result with `isError: true` whose text is
-`error <code> (HTTP <status>): <message>` plus one `key: value` line per
-detail: a number, a boolean or null as it is (`retryable: true`), a text, a
-list or an object as its JSON in a code span (`` org_name: `"Acme"` ``).
-The same body, plain JSON, is in `_meta["sema.error"]`: read a detail's
-value there, not from the text. Every call is recorded in
+refusal is a result with `isError: true` and no `structuredContent`, whose
+text is `error <code> (HTTP <status>): <message>` plus one `key: value` line
+per detail. Read a detail's value from its line: a number, a boolean or
+null stands bare (`retryable: true`; a bare `org_name: null` means no
+name), and a text, a list or an object is JSON inside a code span, which
+you decode for the value (`` org_name: `"Acme"` `` means the name Acme; a
+value holding backticks gets a longer delimiter, and the JSON is everything
+between the two). The same body, as plain JSON, is in `_meta["sema.error"]`
+for a client that exposes it; Claude Code passes only the text to the
+model. Every call is recorded in
 the organization's agent usage (Settings › Agents), a secret's value as
 `[redacted]`.
 

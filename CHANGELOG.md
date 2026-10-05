@@ -66,9 +66,12 @@ read tools are unchanged.
   served today.
 - Refusals: every tools reference describes an MCP refusal's text as it
   is, `error <code> (HTTP <status>): <message>` plus one `key: value` line
-  per detail, and points at `_meta["sema.error"]` for the values; the
-  `merget-graph` and `merget-pr` references said the text was the body
-  itself.
+  per detail, and has the agent read the values from those lines — a bare
+  number, boolean or null, or JSON in a code span that it decodes. A
+  refusal carries no `structuredContent`, and `_meta["sema.error"]`, the
+  same body as plain JSON, reaches the model only in a client that exposes
+  it (Claude Code passes only the text). The `merget-graph` and `merget-pr`
+  references said the text was the body itself.
 - `merget-pr`: `sema whoami` stays in the safe set, which now says it is not
   purely local: to name the token's organization it sends the token to
   `GET /v1/me` on the Merget API that token was issued for, and to no other,
