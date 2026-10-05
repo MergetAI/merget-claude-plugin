@@ -18,7 +18,7 @@ This skill teaches the tools that exist today. **If a tool, argument or field is
 4. **Never retry a refusal blindly.** A 409 that carries the current state (`offer`, `why`) or a 400 with bounds says what changed: show it and ask again. A 403 is the user's to fix.
 5. **Never touch what decides what agents may do** — the organization's agent switch and permission cap, a repository's agent access, this agent's own permissions. They answer an agent 403 `session_required`; tell the user where they change them.
 6. **Never act as an organization owner.** Your role in every organization is `member`, whoever your user is, and no permission changes that: every owner step is the human's, in Merget's dashboard ([Human-only](#human-only)), and no agent grants, receives or transfers the owner role. Asked for an owner step, say whose it is and where it is taken; never look for a way around it.
-7. **Name an organization by its display name.** To the user an organization is its `display_name` (`sema_status`, `sema_org_get`), and its slug only when that is null; Merget's tool text writes Acme (`u-7d9b0c3e`). The slug is only the `org` argument and the segment in dashboard URLs (`/orgs/u-7d9b0c3e/…`). When the user must choose among several organizations, name each by its display name (adding the slug only to tell apart two with the same name) and pass the chosen one's slug as `org`.
+7. **Name an organization by its display name.** To the user an organization is its `display_name` (`sema_status`, `sema_org_get`), and its slug only when that is null; Merget's tool text writes Acme (`u-7d9b0c3e`). The slug is only the `org` argument and the segment in dashboard URLs (`/orgs/u-7d9b0c3e/…`). A refusal about an organization the user belongs to (`agent_scope_disabled`, `agent_access_disabled`) carries `org_name` beside `org` for the same purpose (null or missing: say the slug) — use it, since `sema_org_get` is refused too while agents are off. When the user must choose among several organizations, name each by its display name (adding the slug to those whose names match ignoring case, such as Acme and ACME) and pass the chosen one's slug as `org`.
 
 ## Tools
 
@@ -116,7 +116,7 @@ Whatever this agent's permissions, and even when the user is the organization's 
 |--------|----|
 | `insufficient_scope` (403, `scope`) | ask the user to turn `scope` on for this agent in Merget under Settings › Agents, or to authorize again and tick it |
 | `agent_scope_disabled` (403, `scope`, `org`, `org_name`) | an owner allows that permission for agents under Settings › Agents |
-| `agent_access_disabled` (403) | agents are off for the organization or the repository, or the repository is read-only for agents (changes need `findings_and_graph`): the user's switch |
+| `agent_access_disabled` (403; `org`, `org_name` for the organization's switch, `repo`, `agent_access` for a repository's) | agents are off for the organization or the repository, or the repository is read-only for agents (changes need `findings_and_graph`): the user's switch |
 | `session_required` (403; may name `field`) | a human-only setting, or an owner's step that no agent takes: say what it is and where the user — an owner, for an owner's step — does it in the dashboard |
 | `github_permission_required` (403, `required`) | the user lacks `required` (`push`, `maintain`, `admin`) on the repository in GitHub |
 | `repo_not_found` (404) | unknown, hidden from the user's GitHub account, or another organization's repository |

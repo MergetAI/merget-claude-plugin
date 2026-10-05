@@ -51,10 +51,11 @@ read tools are unchanged.
   from `sema_status` or `sema_org_get`), and by its slug only when it has
   none; the slug (`u-7d9b0c3e` in the examples) is only the `org` argument
   and the URL segment, and choosing among several organizations is asked by
-  name. `consented_org_name`, `next_step.org_name`, `org_name` on
-  `agent_scope_disabled` and `organizations` on the multi-organization
-  `invalid_argument` need the Merget release that serves them;
-  `display_name` itself is served today.
+  name, adding the slug to those whose names match ignoring case.
+  `consented_org_name`, `next_step.org_name`, `org_name` on
+  `agent_scope_disabled` and on the organization's `agent_access_disabled`,
+  and `organizations` on the multi-organization `invalid_argument` need the
+  Merget release that serves them; `display_name` itself is served today.
 - `.mcp.json`: IDE titles for the fourteen operating tools, `sema_status`
   to `sema_docs`.
 - Tool ids: the skills still named the tools after the MCP server's name
