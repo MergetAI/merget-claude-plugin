@@ -5,5 +5,5 @@
   "description": "Semantic merge intelligence, and a merge queue your agent can run. Pull a pull request's Merget analysis into the session: findings and why each one blocks or advises, the merge verdict, queue position, and what a clean-looking text merge broke. Query Merget's code property graph of any commit — symbols, callers, callees, def-use chains, dependence slices, graph diffs and a finding's own slice — so an agent reasons over the cross-file consequences of a change instead of guessing from the diff. Set Merget up and operate it as its dashboard does: walk the user through connecting GitHub, enable repositories and choose their mode, change repository settings, drive the merge queue (retry, hold, merge what's ready, land), read runs and analytics, and manage repository validation secrets — within the permissions the user grants at sign-in, never as an organization owner (an owner's steps stay with the human, in Merget's dashboard), asking before anything merges. Ships the merget-setup, merget-operate, merget-pr and merget-graph skills and connects to the Merget MCP server: twenty-six tools, twelve that read pull requests' analyses and commits' graphs and fourteen that set up and operate Merget.",
   "homepage": "https://sema.merget.ai",
   "name": "merget",
-  "version": "0.3.0"
+  "version": "0.3.1"
 }
