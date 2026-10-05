@@ -1,6 +1,6 @@
 ---
 name: merget-pr
-description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state) through the `merget` MCP server or the `sema` CLI. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, review findings, textual conflicts (with the target or with a pull request ahead in the queue), a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
+description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state) through the `merget` MCP server. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, review findings, textual conflicts (with the target or with a pull request ahead in the queue), a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
 disable-model-invocation: false
 ---
 
@@ -26,8 +26,6 @@ Through the `merget` MCP server (`/mcp` shows this plugin's as `plugin:merget:me
 | `merget_pr_runs` | `repo`, `number` | the PR's runs, newest first (id, status, head/base sha, counts) |
 | `merget_run_findings` | `repo`, `run` | the findings document of one run; `run.stale` says whether it is still the latest |
 | `merget_queue_status` | `repo`, `number?` | the repository's queue plan, or one PR's queue block |
-
-Through the CLI when there is no MCP client: `sema pr owner/repo#N` (markdown on a terminal, JSON when piped, `--json`/`--md` to force, `--run <uuid>`, `--include-report`, `--queue`); it exits `2` when `verdict.blocking_count > 0`, `1` on any error. Sign in once with `sema login`; CI sets `SEMA_TOKEN`.
 
 All of it is read-only. Merget never changes a PR, a branch or a queue on your behalf; the graph tools of the `merget-graph` skill are read-only as well.
 
@@ -90,14 +88,14 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 ## Safe set and stop-and-ask
 
-**Safe to run freely** (all read-only): `merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`, `sema pr`, `sema whoami`, `sema mcp config`.
+**Safe to run freely** (all read-only): `merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`.
 
 **Stop and ask the user when**
 
 - `repo_not_found` (404): the repository is unknown to Merget, has no installation, or the token was consented for another organization; the three are indistinguishable by design. Ask which organization was chosen at sign-in and whether Merget is installed on the repository.
 - `agent_access_disabled` (403): the organization or repository switched agents off in Merget's dashboard (Settings → Agents, Repositories → agent access). Only an owner can change it.
-- `insufficient_scope` (403): the token lacks the scope the tool needs (`merget:findings.read` for these tools, `merget:queue.read` for the queue block). In Claude Code run `/mcp`, select the Merget server, choose **Clear authentication** and sign in again with the scope; with the CLI, `sema login --scopes …`.
-- `unauthorized` (401) or `session_required`: sign-in is needed (`/mcp` → sign in; `sema login`); an agent token is refused on every mutating route, which is expected.
+- `insufficient_scope` (403): the token lacks the scope the tool needs (`merget:findings.read` for these tools, `merget:queue.read` for the queue block). In Claude Code run `/mcp`, select the Merget server, choose **Clear authentication** and sign in again with the scope.
+- `unauthorized` (401) or `session_required`: sign-in is needed (`/mcp` → sign in); an agent token is refused on every mutating route, which is expected.
 - `verdict.status` is `failed`: there is no verdict; do not report the PR as clean or blocked. Point at `run.details_url`.
 - `rate_limited` (429): wait for `Retry-After`; do not loop.
 - The user asks for something these tools cannot do: merge, re-run Merget, dismiss a finding, change the queue, or read a repository Merget is not installed on. Say it is unavailable and offer the closest real step (push a fix and re-read; ask an owner to install Merget).

@@ -8,10 +8,6 @@ remote MCP server at `https://sema.merget.ai/mcp`, and adds two skills:
 
 Both skills only read: they never change a pull request, a branch or a queue.
 
-> The tool ids and the CLI still carry `sema`, Merget's internal codename for
-> the merge queue. They are the API's names today; renaming them is a
-> versioned API change and will land with its own release.
-
 ## Install in Claude Code
 
 ```
@@ -34,9 +30,9 @@ in `/plugin` → Installed, then `/reload-plugins` in an open session.
 
 ### Upgrading from 0.2.0
 
-0.2.0 had you add a server of your own, `merget`, whose header helper asks
-the `sema` CLI for a token. Remove it before you sign in, along with any
-other `merget` server you added yourself:
+0.2.0 had you add a server of your own, `merget`, whose header helper
+fetched a token for it. Remove it before you sign in, along with any other
+`merget` server you added yourself:
 
 ```
 claude mcp remove merget
@@ -50,10 +46,10 @@ per address, and a server you add yourself takes precedence over the
 plugin's: while one points at `https://sema.merget.ai/mcp`, `/mcp` lists it
 and not `plugin:merget:merget`.
 
-Any other client you set up from 0.2.0 still sends the `SEMA_TOKEN` bearer:
-delete what sends it — the `bearer_token_env_var` line (Codex), the
-`headers` entry (Cursor), or the same header in another client — then sign
-in as [Other agents](#other-agents) describes.
+Any other client you set up from 0.2.0 still sends a bearer token from your
+environment: delete what sends it — the `bearer_token_env_var` line
+(Codex), the `headers` entry (Cursor), or the same header in another
+client — then sign in as [Other agents](#other-agents) describes.
 
 ## Sign in
 
@@ -88,8 +84,8 @@ to approve.
   a hosted client's web address, such as `claude.ai`; or an app's own
   address, such as `cursor://anysphere.cursor-mcp`, which Cursor uses when
   it cannot start its callback on your computer. A **Known client** badge
-  marks a client Merget vouches for: its own CLI, or a web address of
-  Claude's (`claude.ai`, `claude.com`) or VS Code's (`vscode.dev`,
+  marks a client Merget vouches for, such as a web address of Claude's
+  (`claude.ai`, `claude.com`) or VS Code's (`vscode.dev`,
   `insiders.vscode.dev`). Any other address off your computer reads
   "Merget doesn't recognize this application" — expected for a client
   Merget doesn't list, but check that the address belongs to the client
@@ -129,11 +125,11 @@ in again when the hour is up.
 ### When you approved before
 
 Merget remembers approvals: it does not ask you twice about a client with a
-published identity, such as Claude Code with claude.ai's, or about Merget's
-CLI. When you already approved this request — the same permissions, sent
-to the same place — and that approval still stands and was given or last
-used in the last 90 days, the page names the application and the
-organization you approved, says where access goes, and reads either
+published identity, such as Claude Code with claude.ai's. When you already
+approved this request — the same permissions, sent to the same place — and
+that approval still stands and was given or last used in the last 90 days,
+the page names the application and the organization you approved, says
+where access goes, and reads either
 
 - **Continue as before?**, when your browser was already signed in to
   Merget: select **Continue as** and your name to approve it again; or
@@ -235,40 +231,13 @@ answers 401, or run `opencode mcp auth merget`:
 ```
 
 **Without OAuth**, a client sends a bearer token in the `Authorization`
-header instead; most can read it from the environment (Codex:
-`bearer_token_env_var = "SEMA_TOKEN"`; Cursor:
-`"Authorization": "Bearer ${env:SEMA_TOKEN}"` under `headers`). Merget's CLI
-([on request](#the-cli-on-its-own)) gets one: sign it in once with
-`sema login`, then, before starting the client, run
-
-```
-export SEMA_TOKEN="$(SEMA_TOKEN= sema token print)"
-```
-
-`SEMA_TOKEN=` keeps the CLI from printing back a token already exported; it
-prints its own, renewed when close to expiring. That token expires within
-the hour (`sema whoami` shows when) and the client never renews it: when
-calls start failing with 401, run the line again and restart the client.
-Keep the token out of anything you share.
+header instead; write to hello@merget.ai if yours cannot sign in through
+OAuth. An access token lasts an hour, and a token passed this way is never
+renewed. Keep it out of anything you share.
 
 The skills are plain markdown under `skills/`; copy them into the agent's
 skill directory when it supports one (Codex: `~/.agents/skills/`), or into
 `.cursor/rules/` as rules.
-
-## The CLI on its own
-
-`sema`, Merget's CLI, is available on request from hello@merget.ai.
-
-```
-sema login                  # sign in through the browser, once
-sema pr owner/repo#N        # the findings document; exit 2 when findings block
-sema graph callers --repo owner/name --rev pr:N:head --at src/x.rs:42
-sema whoami                 # subject, client, scopes, org, expiry
-```
-
-`sema graph` exits `3` while a commit's graph is still being built. In CI set
-`SEMA_TOKEN` (and `SEMA_API_URL` for a deployment other than
-`https://sema.merget.ai`); it is used verbatim and never refreshed.
 
 ## Layout
 

@@ -1,9 +1,10 @@
 # The findings document
 
-`merget_pr_findings`, `merget_run_findings`, `GET /v1/repos/:owner/:name/pulls/:number/findings`
-and `sema pr` all return the same `PrFindingsDoc`. Fields are only added
-within an `api_version`; a removed or renamed field bumps the version.
-This page lists every field as served by `api_version: "2026-09"`.
+`merget_pr_findings`, `merget_run_findings` and
+`GET /v1/repos/:owner/:name/pulls/:number/findings` all return the same
+`PrFindingsDoc`. Fields are only added within an `api_version`; a removed
+or renamed field bumps the version. This page lists every field as served
+by `api_version: "2026-09"`.
 
 ## Top level
 
