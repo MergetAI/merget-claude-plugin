@@ -47,7 +47,12 @@ order:
 
 A step about one organization carries `org`, its slug, and `org_name`, its
 display name (null: name it by the slug). Name the organization to the
-human by `org_name`; pass `org`.
+human by `org_name`; pass `org`. The `description` of `reauthorize`,
+`enable_agents` and `allow_agent_permissions` is written to you ("ask the
+user …") and names the organization in Merget's quoting,
+`` `Acme` (`u-7d9b0c3e`) ``: tell the human in your own words what it
+says, naming the organization by `org_name` (by `org` when that is null),
+and give them `url`, rather than pasting it.
 
 A row may carry instead of `setup`:
 
