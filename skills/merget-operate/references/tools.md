@@ -5,15 +5,22 @@ Each tool is `sema_<name>` on the `merget` MCP server
 plugin). A success answers markdown for you in `content[0].text` and the
 document itself in `structuredContent`; a long document's text is cut at
 about 12,000 characters with a line pointing at `structuredContent`. A
-refusal is a result with `isError: true` whose text is
-`error <code> (HTTP <status>): <message>` plus one `key: value` line per
-detail; the same body is in `_meta["sema.error"]`. Every call is recorded in
+refusal is a result with `isError: true` and no `structuredContent`, whose
+text is `error <code> (HTTP <status>): <message>` plus one `key: value` line
+per detail. Read a detail's value from its line: a number, a boolean or
+null stands bare (`retryable: true`; a bare `org_name: null` means no
+name), and a text, a list or an object is JSON inside a code span, which
+you decode for the value (`` org_name: `"Acme"` `` means the name Acme; a
+value holding backticks gets a longer delimiter, and the JSON is everything
+between the two). The same body, as plain JSON, is in `_meta["sema.error"]`
+for a client that exposes it; Claude Code passes only the text to the
+model. Every call is recorded in
 the organization's agent usage (Settings › Agents), a secret's value as
 `[redacted]`.
 
 Common arguments:
 
-- `org` — an organization's slug. Optional when this agent was approved for one organization or the user belongs to exactly one; otherwise 400 `invalid_argument` with `orgs`.
+- `org` — an organization's slug: the identifier you pass, and the segment in dashboard URLs. Name the organization to the user by its `display_name` (`sema_status`, `sema_org_get`), and by the slug only when that is null. Optional when this agent was approved for one organization or the user belongs to exactly one; otherwise 400 `invalid_argument` with `orgs` (their slugs) and `organizations` (`[{slug, display_name}]`): ask the user which one by name, and pass its slug.
 - `repo` — `owner/name` as GitHub names it. Unknown, hidden from the user's GitHub account and another organization's repositories all answer 404 `repo_not_found`. A repository's agent access must be on: `findings` reads only, `findings_and_graph` also changes.
 - `cursor` — the previous page's `next_cursor`. `limit` — the page size.
 - `from`, `to` — RFC 3339, or `YYYY-MM-DD` (UTC midnight).
@@ -175,11 +182,11 @@ Rates come with their denominators, and `observed_from` says where the data star
 | `org` | slug | |
 | `include_members` | boolean | also the members, as Merget's account service lists them |
 
-Answer: `{org: {display_name, agent_access, agent_scopes, llm_budget_usd, llm_spend_month_usd, llm_budget_month, llm_budget_exhausted, …}, members? | members_error?}`. `agent_scopes` null = every permission. `members` is `{org, seats, members: [{user, username, display_name, role, added_at}]}`, each member's own role in the organization; `members_error` (the account service's refusal, `{code, message}`; `agent_relay_unavailable` or `agent_relay_refused` when Merget could not ask it for this agent) replaces it when that service could not answer, and the settings still come back. Nothing here is changed by a tool: the name, the LLM budget and the members are an owner's, in the dashboard, and the agent switch and cap are the user's.
+Answer: `{org: {display_name, agent_access, agent_scopes, llm_budget_usd, llm_spend_month_usd, llm_budget_month, llm_budget_exhausted, …}, members? | members_error?}`. `display_name` is what to call the organization (null: its slug). `agent_scopes` null = every permission. `members` is `{org, seats, members: [{user, username, display_name, role, added_at}]}`, each member's own role in the organization; `members_error` (the account service's refusal, `{code, message}`; `agent_relay_unavailable` or `agent_relay_refused` when Merget could not ask it for this agent) replaces it when that service could not answer, and the settings still come back. Nothing here is changed by a tool: the name, the LLM budget and the members are an owner's, in the dashboard, and the agent switch and cap are the user's.
 
 ## `sema_installation_sync` — `sema:repos.write`
 
-`org`, `installation` (one id; omit for every installation, which also needs `sema:org.read`). Answer: `{org, installations: [{installation_id, ok, installation?, repositories?, error?}]}` — the `merget-setup` skill's tools reference.
+`org`, `installation` (one id; omit for every installation, which also needs `sema:org.read`). Answer: `{org, org_name, installations: [{installation_id, ok, installation?, repositories?, error?}]}`; `org_name` is the organization's display name, what to call it (null: its slug) — the `merget-setup` skill's tools reference.
 
 ## `sema_secrets` — `sema:repos.write`
 

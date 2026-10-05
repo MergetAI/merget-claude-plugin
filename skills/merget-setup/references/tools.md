@@ -4,15 +4,27 @@ Each tool below is `sema_<name>` on the `merget` MCP server
 (`mcp__plugin_merget_merget__sema_<name>` in Claude Code through this
 plugin). A success answers markdown for you in `content[0].text` and the
 document itself in `structuredContent`. A refusal is a result with
-`isError: true` whose text is `error <code> (HTTP <status>): <message>`
-followed by one `key: value` line per detail; the same body is in
-`_meta["sema.error"]`. The table of codes is in SKILL.md, "When a call is
-refused".
+`isError: true` and no `structuredContent`, whose text is
+`error <code> (HTTP <status>): <message>` followed by one `key: value` line
+per detail. Read a detail's value from its line. A number, a boolean or
+null stands bare (`retryable: true`; a bare `org_name: null` means the
+organization has no name). A text, a list or an object is JSON inside a code
+span: decode that JSON for the value, so `` org_name: `"Acme"` `` means the
+name Acme and `` org: `"u-7d9b0c3e"` `` the slug u-7d9b0c3e. A value that
+itself holds backticks gets a longer run of them as its delimiter; the JSON
+is everything between the two delimiters. The same body, as plain JSON, is
+in `_meta["sema.error"]` for a client that exposes it; Claude Code passes
+only the text to the model. The table of codes is in SKILL.md, "When a call
+is refused".
 
-`org` is an organization's slug (`^[A-Za-z0-9_.-]{1,100}$`). It may be left
-out when this agent was approved for one organization or the user belongs to
-exactly one; otherwise the call answers 400 `invalid_argument` with `orgs`
-listing them. `repo` is a repository as GitHub names it, `owner/name`.
+`org` is an organization's slug (`^[A-Za-z0-9_.-]{1,100}$`): the identifier
+you pass, and the segment in Merget's URLs; name the organization to the
+human by its `display_name` instead, and by the slug only when that is null.
+It may be left out when this agent was approved for one organization or the
+user belongs to exactly one; otherwise the call answers 400
+`invalid_argument` with `orgs` listing their slugs and `organizations`
+listing each as `{slug, display_name}`: ask the human which one by name, and
+pass its slug. `repo` is a repository as GitHub names it, `owner/name`.
 
 A call runs under a deadline: 20 s, 30 s for `sema_status`, a minute for the
 tools that read GitHub live (`sema_repo_settings_get`, `sema_repo_update`,
@@ -26,17 +38,27 @@ happened: read the state before repeating it.
 | `org` | slug | no | read this organization only (403 `not_a_member` when the user is not one) |
 
 ```json
-{"identity": {"sub": "…", "handle": "octo", "agent": true, "client_id": "dcr_…", "consented_org": "acme"},
+{"identity": {"sub": "…", "handle": "octo", "agent": true, "client_id": "dcr_…", "consented_org": "u-7d9b0c3e", "consented_org_name": "Acme"},
  "scopes": ["sema:org.read", "sema:repos.write", "offline_access"],
- "orgs": [{"slug": "acme", "role": "member", "display_name": "Acme", "agent_access": true, "agent_scopes": null,
+ "orgs": [{"slug": "u-7d9b0c3e", "role": "member", "display_name": "Acme", "agent_access": true, "agent_scopes": null,
            "permissions": ["sema:org.read", "sema:repos.write"],
-           "setup": {"state": "no_installation", "next_step": {"action": "install_github_app", "description": "…", "url": "https://sema.merget.ai/orgs/acme/settings/github"},
+           "setup": {"state": "no_installation", "next_step": {"action": "install_github_app", "description": "…", "url": "https://sema.merget.ai/orgs/u-7d9b0c3e/settings/github"},
                      "counts": {…}, "github": {…}, "access": {…}}}],
- "next_step": {"action": "install_github_app", "description": "…", "url": "…", "org": "acme"}}
+ "next_step": {"action": "install_github_app", "description": "…", "url": "…", "org": "u-7d9b0c3e", "org_name": "Acme"}}
 ```
 
-`consented_org` is the organization this agent was approved for (null: all
-the user's). `role` is the role an agent acts with there: always `member`,
+`display_name` is what to call the organization (null when its owner set
+none: then its slug is its name). Merget's own markdown labels the
+organization with the name and the slug each in a code span,
+`` `Acme` (`u-7d9b0c3e`) `` (the slug alone, `` `u-7d9b0c3e` ``, when there
+is no name): take the name from this field, never from that label, and say
+it as plain text, without the backticks and never as a link or markup
+(SKILL.md, "Naming an organization"). `consented_org` is the organization this agent
+was approved for (null: all the user's), and `consented_org_name` its
+display name; the top-level `next_step` carries `org` and `org_name` the
+same way. A refusal has no `structuredContent`: there the name is the
+decoded JSON of its `org_name` or `organizations` detail line (above, and
+SKILL.md, "Naming an organization"). `role` is the role an agent acts with there: always `member`,
 whoever its user is, since an agent never acts as an owner. `permissions` is
 what this token may do in that organization: its scopes within the owner's
 cap, empty when agents are off there. States and actions:
@@ -54,10 +76,11 @@ that already exists; give the human that page.
 | `org` | slug | no | |
 | `installation` | integer | no | one installation id; omit to sync every installation of the organization (that also needs `sema:org.read`) |
 
-Answer: `{org, installations: [{installation_id, ok, installation?, repositories?, error?}]}`,
-one row per installation: on success the installation (`account_login`,
-`status`, …) and the repositories the human may see (`id`, `full_name`,
-`enabled`, `mode`); on failure the error body. One that GitHub does not
+Answer: `{org, org_name, installations: [{installation_id, ok, installation?, repositories?, error?}]}`:
+`org_name` is the organization's display name, what to call it (null: its
+slug), and there is one row per installation: on success the installation
+(`account_login`, `status`, …) and the repositories the human may see (`id`,
+`full_name`, `enabled`, `mode`); on failure the error body. One that GitHub does not
 answer within 50 s reads `timeout` while the others still answer. Marked
 destructive: an installation GitHub no longer has is removed from the
 organization (`installation_removed`). Re-checking is any member's, as the

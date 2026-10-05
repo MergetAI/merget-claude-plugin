@@ -90,7 +90,7 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 ## Safe set and stop-and-ask
 
-**Safe to run freely** (all read-only): `sema_pr_findings`, `sema_pr_runs`, `sema_run_findings`, `sema_queue_status`, `sema pr`, `sema whoami`, `sema mcp config`.
+**Safe to run freely** (all read-only): `sema_pr_findings`, `sema_pr_runs`, `sema_run_findings`, `sema_queue_status`, `sema pr`, `sema whoami`, `sema mcp config`. `sema whoami` is not purely local. It may first refresh a stored token at the sign-in service. To name the token's organization it calls `GET /v1/me` on the configured API (`SEMA_API_URL`, else the API the last `sema login` stored, else https://sema.merget.ai), and only when the token was issued for that same API and holds `sema:org.read` (one of `sema login`'s default scopes). Otherwise it prints the slug and makes no `/v1/me` request: a token is never sent to a host it was not issued for.
 
 **Stop and ask the user when**
 
