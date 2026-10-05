@@ -179,7 +179,7 @@ Answer: `{org: {display_name, agent_access, agent_scopes, llm_budget_usd, llm_sp
 
 ## `sema_installation_sync` — `sema:repos.write`
 
-`org`, `installation` (one id; omit for every installation, which also needs `sema:org.read`). Answer: `{org, installations: [{installation_id, ok, installation?, repositories?, error?}]}` — the `merget-setup` skill's tools reference.
+`org`, `installation` (one id; omit for every installation, which also needs `sema:org.read`). Answer: `{org, org_name, installations: [{installation_id, ok, installation?, repositories?, error?}]}`; `org_name` is the organization's display name, what to call it (null: its slug) — the `merget-setup` skill's tools reference.
 
 ## `sema_secrets` — `sema:repos.write`
 

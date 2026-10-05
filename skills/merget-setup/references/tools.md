@@ -41,13 +41,15 @@ happened: read the state before repeating it.
 
 `display_name` is what to call the organization (null when its owner set
 none: then its slug is its name); Merget's own text writes Acme
-(`u-7d9b0c3e`). `consented_org` is the organization this agent was approved
-for (null: all the user's), and `consented_org_name` its display name; the
-top-level `next_step` carries `org` and `org_name` the same way. `role` is
-the role an agent acts with there: always `member`, whoever its user is,
-since an agent never acts as an owner. `permissions` is what this token may
-do in that organization: its scopes within the owner's cap, empty when
-agents are off there. States and actions:
+(`u-7d9b0c3e`), and it puts a name with a character markdown could read in
+a code span (`` `Acme_Corp` (`u-7d9b0c3e`) ``), so say the name from this
+field, never by copying the text. `consented_org` is the organization this
+agent was approved for (null: all the user's), and `consented_org_name` its
+display name; the top-level `next_step` carries `org` and `org_name` the
+same way. `role` is the role an agent acts with there: always `member`,
+whoever its user is, since an agent never acts as an owner. `permissions` is
+what this token may do in that organization: its scopes within the owner's
+cap, empty when agents are off there. States and actions:
 [setup-states.md](setup-states.md).
 
 No tool connects GitHub. For `install_github_app`, `next_step.url` is the
@@ -62,10 +64,11 @@ that already exists; give the human that page.
 | `org` | slug | no | |
 | `installation` | integer | no | one installation id; omit to sync every installation of the organization (that also needs `sema:org.read`) |
 
-Answer: `{org, installations: [{installation_id, ok, installation?, repositories?, error?}]}`,
-one row per installation: on success the installation (`account_login`,
-`status`, …) and the repositories the human may see (`id`, `full_name`,
-`enabled`, `mode`); on failure the error body. One that GitHub does not
+Answer: `{org, org_name, installations: [{installation_id, ok, installation?, repositories?, error?}]}`:
+`org_name` is the organization's display name, what to call it (null: its
+slug), and there is one row per installation: on success the installation
+(`account_login`, `status`, …) and the repositories the human may see (`id`,
+`full_name`, `enabled`, `mode`); on failure the error body. One that GitHub does not
 answer within 50 s reads `timeout` while the others still answer. Marked
 destructive: an installation GitHub no longer has is removed from the
 organization (`installation_removed`). Re-checking is any member's, as the
