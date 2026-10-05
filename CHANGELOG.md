@@ -82,10 +82,14 @@ read tools are unchanged.
   it (Claude Code passes only the text). The `merget-graph` and `merget-pr`
   references said the text was the body itself.
 - `merget-pr`: `sema whoami` stays in the safe set, which now says it is not
-  purely local: to name the token's organization it sends the token to
-  `GET /v1/me` on the Merget API that token was issued for, and to no other,
-  when the token holds `sema:org.read` — among `sema login`'s default
-  scopes from the `sema` release that names the organization.
+  purely local: it may refresh a stored token at the sign-in service, and
+  to name the token's organization it calls `GET /v1/me` on the configured
+  API (`SEMA_API_URL`, else the API the last `sema login` stored, else the
+  default) only when the token was issued for that same API and holds
+  `sema:org.read` — among `sema login`'s default scopes from the `sema`
+  release that names the organization. Otherwise it prints the slug and
+  makes no `/v1/me` request; a token is never sent to a host it was not
+  issued for.
 - `.mcp.json`: IDE titles for the fourteen operating tools, `sema_status`
   to `sema_docs`.
 - Tool ids: the skills still named the tools after the MCP server's name
