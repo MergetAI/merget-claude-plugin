@@ -5,9 +5,11 @@ Each tool below is `sema_<name>` on the `merget` MCP server
 plugin). A success answers markdown for you in `content[0].text` and the
 document itself in `structuredContent`. A refusal is a result with
 `isError: true` whose text is `error <code> (HTTP <status>): <message>`
-followed by one `key: value` line per detail; the same body is in
-`_meta["sema.error"]`. The table of codes is in SKILL.md, "When a call is
-refused".
+followed by one `key: value` line per detail: a number, a boolean or null
+as it is (`retryable: true`), a text, a list or an object as its JSON in a
+code span (`` org_name: `"Acme"` ``). The same body, plain JSON, is in
+`_meta["sema.error"]`: read a detail's value there, not from the text. The
+table of codes is in SKILL.md, "When a call is refused".
 
 `org` is an organization's slug (`^[A-Za-z0-9_.-]{1,100}$`): the identifier
 you pass, and the segment in Merget's URLs; name the organization to the
@@ -40,12 +42,12 @@ happened: read the state before repeating it.
 ```
 
 `display_name` is what to call the organization (null when its owner set
-none: then its slug is its name); Merget's own text writes Acme
-(`u-7d9b0c3e`), and it puts a name with a character markdown could read in
-a code span (`` `Acme_Corp` (`u-7d9b0c3e`) ``), so say the name from this
-field, never by copying the text. `consented_org` is the organization this
-agent was approved for (null: all the user's), and `consented_org_name` its
-display name; the top-level `next_step` carries `org` and `org_name` the
+none: then its slug is its name). Merget's own text writes the name and
+the slug each in a code span, `` `Acme` (`u-7d9b0c3e`) `` (the slug alone,
+`` `u-7d9b0c3e` ``, when there is no name), so say the name from this field,
+never by copying the text, and without the backticks. `consented_org` is
+the organization this agent was approved for (null: all the user's), and
+`consented_org_name` its display name; the top-level `next_step` carries `org` and `org_name` the
 same way. `role` is the role an agent acts with there: always `member`,
 whoever its user is, since an agent never acts as an owner. `permissions` is
 what this token may do in that organization: its scopes within the owner's

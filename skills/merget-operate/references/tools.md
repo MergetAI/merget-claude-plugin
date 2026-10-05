@@ -7,7 +7,10 @@ document itself in `structuredContent`; a long document's text is cut at
 about 12,000 characters with a line pointing at `structuredContent`. A
 refusal is a result with `isError: true` whose text is
 `error <code> (HTTP <status>): <message>` plus one `key: value` line per
-detail; the same body is in `_meta["sema.error"]`. Every call is recorded in
+detail: a number, a boolean or null as it is (`retryable: true`), a text, a
+list or an object as its JSON in a code span (`` org_name: `"Acme"` ``).
+The same body, plain JSON, is in `_meta["sema.error"]`: read a detail's
+value there, not from the text. Every call is recorded in
 the organization's agent usage (Settings › Agents), a secret's value as
 `[redacted]`.
 

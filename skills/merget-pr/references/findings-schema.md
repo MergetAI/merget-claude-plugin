@@ -101,7 +101,11 @@ Merget repository).
 
 Every error body is `{"code": "…", "error": "…", "message": "…"}` (`code`
 and `error` carry the same value). Through MCP an error arrives as a
-result with `isError: true` and the same text.
+result with `isError: true` whose text is
+`error <code> (HTTP <status>): <message>` plus one `key: value` line per
+other field (a number, a boolean or null as it is; a text, a list or an
+object as its JSON in a code span, such as `` org_name: `"Acme"` ``), and
+whose `_meta["sema.error"]` is the body itself: read a field's value there.
 
 | Status | `code` | Meaning |
 |--------|--------|---------|

@@ -52,13 +52,23 @@ read tools are unchanged.
   none; the slug (`u-7d9b0c3e` in the examples) is only the `org` argument
   and the URL segment, and choosing among several organizations is asked by
   name, adding the slug to those whose names match ignoring case. The name
-  is taken from those fields, never copied from tool text, which puts a
-  name with markdown characters in a code span.
+  is taken from the structured fields (`display_name`, `org_name`,
+  `consented_org_name`, `organizations[].display_name`), never copied from
+  tool text, which writes every named organization as
+  `` `Name` (`slug`) ``, the name in a code span of its own, and prints a
+  refusal's text, list and object details as JSON in a code span; the
+  human never sees those backticks.
   `consented_org_name`, `next_step.org_name`, `org_name` on
   `agent_scope_disabled`, on the organization's `agent_access_disabled` and
   on `sema_installation_sync`'s answer, and `organizations` on the
   multi-organization `invalid_argument` need the Merget release that serves
-  them; `display_name` itself is served today.
+  them, as do the code-spanned names and details; `display_name` itself is
+  served today.
+- Refusals: every tools reference describes an MCP refusal's text as it
+  is, `error <code> (HTTP <status>): <message>` plus one `key: value` line
+  per detail, and points at `_meta["sema.error"]` for the values; the
+  `merget-graph` and `merget-pr` references said the text was the body
+  itself.
 - `.mcp.json`: IDE titles for the fourteen operating tools, `sema_status`
   to `sema_docs`.
 - Tool ids: the skills still named the tools after the MCP server's name
