@@ -105,7 +105,15 @@ Merget repository).
 
 Every error body is `{"code": "…", "error": "…", "message": "…"}` (`code`
 and `error` carry the same value). Through MCP an error arrives as a
-result with `isError: true` and the same text.
+result with `isError: true` and no `structuredContent`, whose text is
+`error <code> (HTTP <status>): <message>` plus one `key: value` line per
+other field. Read a field's value from its line: a number, a boolean or
+null stands bare (`number: 9`), and a text, a list or an object is JSON
+inside a code span, which you decode (`` scope: `"sema:findings.read"` ``
+means the scope sema:findings.read; a value holding backticks gets a longer
+delimiter, and the JSON is everything between the two).
+`_meta["sema.error"]` holds the same body as plain JSON for a client that
+exposes it; Claude Code passes only the text to the model.
 
 | Status | `code` | Meaning |
 |--------|--------|---------|

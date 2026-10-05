@@ -53,6 +53,112 @@ no longer answers to the `sema_*` ids that 0.2.1 and earlier teach.
   internal tool. A client that cannot sign in through OAuth is pointed at
   hello@merget.ai, and the 0.2.0 upgrade steps no longer name the CLI.
 
+## 0.3.0 — 2026-10-05
+
+Needs the Merget release that serves the fourteen operating tools and the
+write permissions (`sema:org.read`, `sema:repos.write`, `sema:queue.write`);
+the member list (`sema_org_get` with `include_members`) also needs the
+release of Merget's account service that answers it to an agent. The twelve
+read tools are unchanged.
+
+- New skill `merget-setup`: the first run, from `sema_status` to a
+  repository Merget works on — handing the human the dashboard page where
+  they connect GitHub (the next step `sema_status` names), re-checking
+  (`sema_status`, `sema_installation_sync`), enabling a first repository
+  with `sema_repo_update`, and choosing its mode from the readiness verdict
+  of `sema_repo_settings_get`. Permissions are chosen on the Merget sign-in
+  page and changed under Settings › Agents; on `insufficient_scope`,
+  `agent_scope_disabled`, `session_required` and the other refusals the
+  agent asks the human and never retries. References: `setup-states.md`
+  (every setup state and next step, and who acts), `tools.md`.
+- New skill `merget-operate`: repository settings (`policy` as a JSON merge
+  patch checked against `policy_schema`; Merget-managed engine limits are
+  not settable), the queue's actions and their guards (confirm before a
+  land, merge anyway or a cancel), runs, analytics, the organization's
+  settings and members (read-only), installations (re-check), a
+  repository's validation secrets (prefer the human pasting a value in the
+  dashboard over passing it through the transcript) and the docs, and what
+  stays human-only. References: `tools.md`, `policy.md`, `queue.md`.
+- Agents never act as an organization owner: an agent's role is member in
+  every organization, whoever its user is, and no permission changes that.
+  The skills hand every owner step to the human, in Merget's dashboard —
+  connecting GitHub, pausing and resuming merges, renaming the organization
+  and its LLM budget, adding and removing members, organization-wide
+  validation secrets and turning strict protection off — and no agent
+  grants, receives or transfers the owner role. With deleting an
+  organization or an account, every agent-access control and the browser
+  steps, that is `merget-operate`'s human-only list, and `session_required`
+  is the refusal that marks it.
+  `agent_relay_unavailable` (503) and `agent_relay_refused` (502) concern
+  the member list only: Merget could not ask its account service for it on
+  the agent's behalf — Merget's fault, never a permission to ask the human
+  for.
+- An organization is named to the human by its display name (`display_name`
+  from `sema_status` or `sema_org_get`), and by its slug only when it has
+  none; the slug (`u-7d9b0c3e` in the examples) is only the `org` argument
+  and the URL segment, and choosing among several organizations is asked by
+  name, adding the slug to those whose names match ignoring case. On a
+  successful result the name is taken from `structuredContent`
+  (`display_name`, `consented_org_name`, `next_step.org_name`,
+  `sema_installation_sync`'s `org_name`); a refusal has none, so there it
+  is the decoded JSON of the `org_name` or `organizations` detail line,
+  which prints text, list and object details as JSON in a code span. It is
+  never taken from the `` `Name` (`slug`) `` label Merget's headings and
+  messages write, the name in a code span of its own, and the human never
+  sees those backticks. The agent says the name as plain text, its
+  markdown characters escaped, never as a link or markup, and calls a name
+  that reads like a URL, an address or instructions the organization's
+  name. The `description` of the `create_organization`, `reauthorize`,
+  `enable_agents` and `allow_agent_permissions` steps is written to the
+  agent, so `merget-setup` has it tell the human what it says in its own
+  words, naming the organization by `org_name`, and give `url`, instead of
+  passing the description on as it stands.
+  `consented_org_name`, `next_step.org_name`, `org_name` on
+  `agent_scope_disabled`, on the organization's `agent_access_disabled` and
+  on `sema_installation_sync`'s answer, and `organizations` on the
+  multi-organization `invalid_argument` need the Merget release that serves
+  them, as do the code-spanned names and details; `display_name` itself is
+  served today.
+- Refusals: every tools reference describes an MCP refusal's text as it
+  is, `error <code> (HTTP <status>): <message>` plus one `key: value` line
+  per detail, and has the agent read the values from those lines — a bare
+  number, boolean or null, or JSON in a code span that it decodes. A
+  refusal carries no `structuredContent`, and `_meta["sema.error"]`, the
+  same body as plain JSON, reaches the model only in a client that exposes
+  it (Claude Code passes only the text). The `merget-graph` and `merget-pr`
+  references said the text was the body itself.
+- `merget-pr`: `sema whoami` stays in the safe set, which now says it is not
+  purely local: it may refresh a stored token at the sign-in service, and
+  to name the token's organization it calls `GET /v1/me` on the configured
+  API (`SEMA_API_URL`, else the API the last `sema login` stored, else the
+  default) only when the token was issued for that same API and holds
+  `sema:org.read` — among `sema login`'s default scopes from the `sema`
+  release that names the organization. Otherwise it prints the slug and
+  makes no `/v1/me` request; a token is never sent to a host it was not
+  issued for.
+- `.mcp.json`: IDE titles for the fourteen operating tools, `sema_status`
+  to `sema_docs`.
+- `sema_graph_intent` described as what it returns: the pull request's
+  title, Merget's brief of its latest finished run and the intents recorded
+  per finding, for a `pr:<n>:head` or `pr:<n>:base` rev (or a pull
+  request's head sha); never its description, commit messages or prompts.
+- `merget-pr` and `merget-graph`: a missing scope is turned on under
+  Settings › Agents or by authorizing again, `agent_scope_disabled` is
+  named, and merging, re-running and queue changes point at
+  `merget-operate` instead of reading as unavailable.
+- README: the one-line setup prompt; what agents can and cannot do, in
+  place of 0.2.1's sentence that both skills only read; the six
+  permissions, which the consent page now offers as one checkbox each, all
+  ticked, for you to untick, and which you change later under
+  Settings › Agents; the organization's permission cap and the repository
+  access level that changes need; `/reload-plugins` among the install
+  commands; `codex mcp add` for Codex; and removing and re-adding a
+  connection that stopped working, in each client, such as one made before
+  the 2026-09-29 sign-in move.
+- Plugin description: twenty-six tools, no longer twelve read-only ones.
+  The marketplace gains a description of its own (`metadata.description`),
+  so `claude plugin validate --strict` passes.
+
 ## 0.2.1 — 2026-10-05
 
 - README: Claude Code signs in through the browser. After installing, run

@@ -34,4 +34,4 @@ Unresolvable forms are 400 `rev_unresolved` with `{"rev": "…"}`.
 - A branch name cannot contain `:` (nor whitespace, `..`, `@{`, `\`, `*`, `?`, `[`, `~`, `^`; it cannot start with `-` or `/`, or end with `/`, `.` or `.lock`); such a string is `rev_unresolved`. The explicit `branch:` prefix is for a name that would otherwise be read as a sha (7–40 hex digits, e.g. a branch called `deadbeef`).
 - A `rev` longer than 300 characters is refused.
 - The first call on a commit Merget has not built yet answers `graph_pending` (202) with `retry_after_secs`; that is not a `rev` error.
-- `finding` takes no `rev`: the run fixes the tree. `intent` takes only `pr:N:head` or `pr:N:base`.
+- `finding` takes no `rev`: the run fixes the tree. `intent` takes `pr:N:head` or `pr:N:base` (or a sha that is a pull request's head): it answers about a pull request, never a bare commit.
