@@ -3,9 +3,55 @@
 The plugin's version is `.claude-plugin/plugin.json` `version`, mirrored in
 the marketplace manifest (`.claude-plugin/marketplace.json`). Bump both
 together. The MCP tool set and the findings document are versioned separately
-by the API (`api_version`, the `Sema-Api-Version` response header): a plugin
+by the API (`api_version`, the `Merget-Api-Version` response header): a plugin
 release never changes what the server answers, only what the skills teach and
 which tools `.mcp.json` titles.
+
+## 0.3.0 — 2026-10-05
+
+Needs the Merget release that serves its tools as `merget_*`; that release
+no longer answers to the `sema_*` ids that 0.2.1 and earlier teach.
+
+- Tool ids are `merget_*`, each in place of its `sema_*` id:
+  `merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`,
+  `merget_queue_status`, `merget_graph_symbols`, `merget_graph_finding`,
+  `merget_graph_slice`, `merget_graph_callers`, `merget_graph_callees`,
+  `merget_graph_def_use`, `merget_graph_diff` and `merget_graph_intent`.
+  `.mcp.json` titles them under the new ids, and the skills and their
+  references teach them: through this plugin Claude Code names them
+  `mcp__plugin_merget_merget__merget_<name>`, and `mcp__merget__merget_<name>`
+  for a server added by hand as `merget`.
+- Claude Code permission rules naming the old tools
+  (`mcp__plugin_merget_merget__sema_pr_findings`,
+  `mcp__merget__sema_graph_slice`, …) no longer match and must be approved
+  again: approve each tool when Claude Code asks, and rewrite a `deny` or
+  `ask` rule with the new name, since one naming an old tool applies to no
+  tool. A rule naming only the server (`mcp__plugin_merget_merget`) still
+  covers every tool. README, new: Upgrading to 0.3.0, with the same advice.
+- The MCP server names itself `merget` (`serverInfo.name`, was `sema`); this
+  plugin's server was already `merget`, so `/mcp` still lists
+  `plugin:merget:merget`. The server's `_meta` keys are `merget.api_version`,
+  `merget.scope` and `merget.error`, and the API's version header is
+  `Merget-Api-Version` (`Sema-Api-Version` comes beside it for now).
+- Permissions are `merget:*`: the skills' `insufficient_scope` advice, the
+  findings schema and the README's consent-page table name
+  `merget:findings.read`, `merget:graph.read` and `merget:queue.read` in
+  place of `sema:*` (`offline_access` is unchanged), and the product id in
+  Merget's tokens becomes `merget`, where it was `sema`. A connection
+  approved under the old names keeps working: nothing needs signing in
+  again.
+- Provenance is the tier only: a finding's `provenance` is `precise` or
+  `syntactic` (`git` for a conflict) and its `resolver` is `null`; a graph
+  edge's `provenance.resolver` is `name` or `receiver`, where it was
+  `sema-link:name` or `sema-link:receiver`. The skills read the class,
+  never the resolver: a `precise` edge from the receiver pass is precise,
+  and the class `receiver` is left for an edge no pass graded.
+- No command-line fallbacks: the skills no longer offer `sema pr`,
+  `sema graph`, `sema login`, `sema whoami`, `sema mcp config` or
+  `sema token print`, and the README drops the CLI's section and the
+  `SEMA_TOKEN` bearer recipe (with `SEMA_API_URL`); the CLI is Merget's
+  internal tool. A client that cannot sign in through OAuth is pointed at
+  hello@merget.ai, and the 0.2.0 upgrade steps no longer name the CLI.
 
 ## 0.2.1 — 2026-10-05
 
