@@ -194,7 +194,7 @@ stands bare (`retryable: false`), and a text, a list or an object is JSON
 inside a code span, which you decode — `suggestions` arrives as
 `` suggestions: `[{"line":301,"path":"src/sds.c","text":"sdscatlen"}]` ``
 (a value holding backticks gets a longer delimiter; the JSON is everything
-between the two). `_meta["sema.error"]` holds the same body as plain JSON
+between the two). `_meta["merget.error"]` holds the same body as plain JSON
 for a client that exposes it; Claude Code passes only the text to the
 model. The full table with what to do is in SKILL.md → "Errors".
 

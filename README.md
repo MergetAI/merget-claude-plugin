@@ -3,7 +3,7 @@
 Connects Claude Code to Merget — the semantic merge queue — through the
 remote MCP server at `https://sema.merget.ai/mcp`, and adds four skills:
 
-- **merget-setup** — the first run: where your organization stands (`sema_status`), the page in Merget's dashboard where you connect GitHub, enabling a first repository and choosing its automation mode from what GitHub lets Merget do there.
+- **merget-setup** — the first run: where your organization stands (`merget_status`), the page in Merget's dashboard where you connect GitHub, enabling a first repository and choosing its automation mode from what GitHub lets Merget do there.
 - **merget-operate** — Merget the way its dashboard runs it, short of an organization owner's steps: repository settings, the merge queue (retry, hold, merge what's ready, land), runs, analytics, a repository's validation secrets and the docs.
 - **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state (`merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`).
 - **merget-graph** — typed queries over Merget's code property graphs of any commit: symbols, callers, callees, def-use, slices, graph diff, a finding's slice, a PR side's intent (`merget_graph_*`). Merget builds a commit's graph on first use, so the first call on a fresh commit may answer `graph_pending` and succeed on the retry.
@@ -126,12 +126,12 @@ to approve.
 
 | Permission | Lets the agent |
 |------------|----------------|
-| `sema:findings.read` | read pull-request and run findings, merge briefs and repository summaries |
-| `sema:graph.read` | use the graph tools on any commit Merget has built |
-| `sema:queue.read` | read queue position, enforcement and branch relationships, and every repository's queue |
-| `sema:org.read` | read repositories and their settings, members, runs, analytics, GitHub installations, setup state and the docs |
-| `sema:repos.write` | change repository settings, including turning Merget on or off and the automation mode, manage a repository's validation secrets, and check GitHub installations again |
-| `sema:queue.write` | hold, release, retry and merge pull requests in the merge queue, including merge anyway |
+| `merget:findings.read` | read pull-request and run findings, merge briefs and repository summaries |
+| `merget:graph.read` | use the graph tools on any commit Merget has built |
+| `merget:queue.read` | read queue position, enforcement and branch relationships, and every repository's queue |
+| `merget:org.read` | read repositories and their settings, members, runs, analytics, GitHub installations, setup state and the docs |
+| `merget:repos.write` | change repository settings, including turning Merget on or off and the automation mode, manage a repository's validation secrets, and check GitHub installations again |
+| `merget:queue.write` | hold, release, retry and merge pull requests in the merge queue, including merge anyway |
 | `offline_access` | stay connected without signing in again |
 
 No permission lets an agent take an owner's step. Change them later in
@@ -176,7 +176,7 @@ access. No agent can change any of these.
 - **It will be allowed to** — one checkbox per permission the client asks
   for, all ticked: the scope's name, with a line about it beneath, such as
   "Change repository settings and validation secrets" for
-  `sema:repos.write`. **Stay connected without signing in again** is the
+  `merget:repos.write`. **Stay connected without signing in again** is the
   `offline_access` box, which is not a permission. Untick what this agent
   should not have; at least one permission must stay ticked.
 - **Organization** — one of your organizations that uses Merget, or **All

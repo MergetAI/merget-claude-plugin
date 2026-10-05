@@ -1,8 +1,8 @@
 # Queue actions: the plan, the offer, merge anyway
 
-`sema_queue_action {repo, action, …}` does what the queue page's buttons do,
+`merget_queue_action {repo, action, …}` does what the queue page's buttons do,
 through the same route bodies, so an agent and a person meet the same checks
-and the same refusals. Every action needs `sema:queue.write`, the
+and the same refusals. Every action needs `merget:queue.write`, the
 repository's agent access at `findings_and_graph`, and the user's GitHub
 permission on the repository read live: `push` (403
 `github_permission_required` otherwise). No action is idempotent: read the
@@ -16,7 +16,7 @@ token holds.
 
 ## Reading the plan first
 
-`sema_queue_get {repo}` (view `plan`) answers the queue as its page reads it:
+`merget_queue_get {repo}` (view `plan`) answers the queue as its page reads it:
 
 | Field | Meaning |
 |-------|---------|

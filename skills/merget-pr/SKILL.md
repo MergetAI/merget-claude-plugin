@@ -99,7 +99,7 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 - `unauthorized` (401): sign-in is needed (`/mcp` → the Merget server → Authenticate).
 - `verdict.status` is `failed`: there is no verdict; do not report the PR as clean or blocked. Point at `run.details_url`.
 - `rate_limited` (429): wait for `Retry-After`; do not loop.
-- The user asks for something these tools cannot do. Merging, re-running Merget and changing the queue are the `merget-operate` skill's (`sema_queue_action`, with `sema:queue.write` and the user's confirmation); dismissing a finding happens on GitHub; a repository Merget is not installed on needs its GitHub App (the `merget-setup` skill). Never imply these tools did any of it.
+- The user asks for something these tools cannot do. Merging, re-running Merget and changing the queue are the `merget-operate` skill's (`merget_queue_action`, with `merget:queue.write` and the user's confirmation); dismissing a finding happens on GitHub; a repository Merget is not installed on needs its GitHub App (the `merget-setup` skill). Never imply these tools did any of it.
 
 ## References
 
