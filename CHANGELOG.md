@@ -7,7 +7,7 @@ by the API (`api_version`, the `Sema-Api-Version` response header): a plugin
 release never changes what the server answers, only what the skills teach and
 which tools `.mcp.json` titles.
 
-## 0.2.1 — 2026-10-02
+## 0.2.1 — 2026-10-05
 
 - README: Claude Code signs in through the browser. After installing, run
   `/mcp` and authenticate the Merget server: Claude Code opens Merget's
@@ -64,17 +64,20 @@ which tools `.mcp.json` titles.
   sentence names review findings; finding kinds are the served ones
   (`broken-reference`, `interference-dataflow`, …).
 - README: the consent page for a client with a published identity, which
-  Claude Code uses once Merget accepts them — the page names the host that
-  publishes it (`claude.ai`, which "calls it “Claude Code”"), adds that any
-  app on this computer can ask in that host's name, and shows the
-  identity's address as the Client ID
-  (`https://claude.ai/oauth/claude-code-client-metadata`); a Claude Code
-  that registered before keeps its `dcr_…` registration until its
-  authentication is cleared. What the page shows once Merget remembers
-  approvals (**Continue as before?**, **Continuing as before…**, **Stop and
-  review**), and `claude mcp logout plugin:merget:merget` for when `/mcp`
-  offers no **Clear authentication**; either way Claude Code signs the
-  connection out at Merget too.
+  Claude Code signs in with — the page names the host that publishes it
+  (`claude.ai`, which "calls it “Claude Code”"), adds that any app on this
+  computer can ask in that host's name, and shows the identity's address
+  as the Client ID (`https://claude.ai/oauth/claude-code-client-metadata`);
+  a Claude Code that registered before keeps its `dcr_…` registration
+  until its authentication is cleared. What the page shows when Merget
+  remembers an approval given or last used in the last 90 days
+  (**Continue as before?**, **Continuing as before…**, **Stop and
+  review**). Clearing authentication also when Merget's sign-in page says
+  the app isn't registered (a `dcr_…` registration lapses after two and a
+  half to three months without use), and
+  `claude mcp logout plugin:merget:merget` for when `/mcp` offers no
+  **Clear authentication**; either way Claude Code signs the connection
+  out at Merget too.
 
 ## 0.2.0 — 2026-09-10
 
