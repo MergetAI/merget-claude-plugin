@@ -355,9 +355,12 @@ the connection.
 ### Without OAuth
 
 A client without OAuth sends a bearer token in the `Authorization` header
-instead; write to hello@merget.ai if yours cannot sign in through OAuth. An
-access token lasts an hour, and a token passed this way is never renewed.
-Keep it out of anything you share.
+instead (`Authorization: Bearer <token>`). Get the token by signing in to
+Merget in your browser with an OAuth client of your own, as the HTTP API
+page of the docs in Merget's dashboard describes under Authentication. An
+access token lasts an hour, and a token passed this way is never renewed:
+when calls start failing with 401, get a new one. Keep it out of anything
+you share. If no client of yours can sign in, write to hello@merget.ai.
 
 ### A connection that stopped working
 
