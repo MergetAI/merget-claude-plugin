@@ -45,6 +45,10 @@ order:
 | a setup `action` above, with `org` | the first organization whose setup is not `ready` | as above |
 | `none` | every organization whose setup was read is ready | nothing |
 
+A step about one organization carries `org`, its slug, and `org_name`, its
+display name (null: name it by the slug). Name the organization to the
+human by `org_name`; pass `org`.
+
 A row may carry instead of `setup`:
 
 - `setup_omitted`: agents may not read this organization's setup (its agent access is off, or its owner does not allow `sema:org.read`), or the user belongs to more than ten organizations and this one was past the tenth — call `sema_status` with `org` to read it;

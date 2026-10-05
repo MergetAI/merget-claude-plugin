@@ -18,6 +18,7 @@ This skill teaches the tools that exist today. **If a tool, argument or field is
 4. **Never retry a refusal blindly.** A 409 that carries the current state (`offer`, `why`) or a 400 with bounds says what changed: show it and ask again. A 403 is the user's to fix.
 5. **Never touch what decides what agents may do** — the organization's agent switch and permission cap, a repository's agent access, this agent's own permissions. They answer an agent 403 `session_required`; tell the user where they change them.
 6. **Never act as an organization owner.** Your role in every organization is `member`, whoever your user is, and no permission changes that: every owner step is the human's, in Merget's dashboard ([Human-only](#human-only)), and no agent grants, receives or transfers the owner role. Asked for an owner step, say whose it is and where it is taken; never look for a way around it.
+7. **Name an organization by its display name.** To the user an organization is its `display_name` (`sema_status`, `sema_org_get`), and its slug only when that is null; Merget's tool text writes Acme (`u-7d9b0c3e`). The slug is only the `org` argument and the segment in dashboard URLs (`/orgs/u-7d9b0c3e/…`). When the user must choose among several organizations, name each by its display name (adding the slug only to tell apart two with the same name) and pass the chosen one's slug as `org`.
 
 ## Tools
 
@@ -88,7 +89,7 @@ The offer, every answer and every refusal → [references/queue.md](references/q
 
 ## Organization, installations, secrets, docs
 
-- `sema_org_get` — display name, the agent switch and cap (yours to read, never to change), the monthly LLM budget with this month's spend and whether it is exhausted; `include_members` adds the members with their roles (`members_error` instead when Merget's account service could not answer: say so, never guess the list). Read-only: the name, the budget and the members are an owner's to change, in the dashboard.
+- `sema_org_get` — `display_name` (what to call the organization; null: its slug), the agent switch and cap (yours to read, never to change), the monthly LLM budget with this month's spend and whether it is exhausted; `include_members` adds the members with their roles (`members_error` instead when Merget's account service could not answer: say so, never guess the list). Read-only: the name, the budget and the members are an owner's to change, in the dashboard.
 - `sema_installation_sync` — after the user accepted a GitHub permission or changed the App's repositories. An installation GitHub no longer has is removed and its queued work cancelled; report it.
 - `sema_secrets {action, repo, name, value}` — a repository's validation secrets, which the setup step of its build receives (registry tokens); `repo` is required, and every action needs maintain on it in GitHub. Write-only: `list` names the repository's own secrets and the organization-wide ones it receives (`scope` `repo` or `org`), never a value; `set` and `delete` touch the repository's own. The organization-wide secrets are an owner's, in the dashboard. A value passed to `set` travels through this conversation and its transcript, so **prefer that the user pastes it themselves** in the repository's settings drawer (Advanced › Build and test setup › Validation secrets). Never repeat a value, write it to a file or commit it.
 - `sema_docs {page}` — Merget's documentation by page id (`repository-settings`, `batching`, `validation`, `merge-queue`, `automation-modes`, …); without `page`, the list. Read it before guessing what a setting does.
@@ -114,7 +115,7 @@ Whatever this agent's permissions, and even when the user is the organization's 
 | `code` | Do |
 |--------|----|
 | `insufficient_scope` (403, `scope`) | ask the user to turn `scope` on for this agent in Merget under Settings › Agents, or to authorize again and tick it |
-| `agent_scope_disabled` (403, `scope`, `org`) | an owner allows that permission for agents under Settings › Agents |
+| `agent_scope_disabled` (403, `scope`, `org`, `org_name`) | an owner allows that permission for agents under Settings › Agents |
 | `agent_access_disabled` (403) | agents are off for the organization or the repository, or the repository is read-only for agents (changes need `findings_and_graph`): the user's switch |
 | `session_required` (403; may name `field`) | a human-only setting, or an owner's step that no agent takes: say what it is and where the user — an owner, for an owner's step — does it in the dashboard |
 | `github_permission_required` (403, `required`) | the user lacks `required` (`push`, `maintain`, `admin`) on the repository in GitHub |

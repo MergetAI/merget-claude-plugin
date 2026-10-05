@@ -9,10 +9,14 @@ followed by one `key: value` line per detail; the same body is in
 `_meta["sema.error"]`. The table of codes is in SKILL.md, "When a call is
 refused".
 
-`org` is an organization's slug (`^[A-Za-z0-9_.-]{1,100}$`). It may be left
-out when this agent was approved for one organization or the user belongs to
-exactly one; otherwise the call answers 400 `invalid_argument` with `orgs`
-listing them. `repo` is a repository as GitHub names it, `owner/name`.
+`org` is an organization's slug (`^[A-Za-z0-9_.-]{1,100}$`): the identifier
+you pass, and the segment in Merget's URLs; name the organization to the
+human by its `display_name` instead, and by the slug only when that is null.
+It may be left out when this agent was approved for one organization or the
+user belongs to exactly one; otherwise the call answers 400
+`invalid_argument` with `orgs` listing their slugs and `organizations`
+listing each as `{slug, display_name}`: ask the human which one by name, and
+pass its slug. `repo` is a repository as GitHub names it, `owner/name`.
 
 A call runs under a deadline: 20 s, 30 s for `sema_status`, a minute for the
 tools that read GitHub live (`sema_repo_settings_get`, `sema_repo_update`,
@@ -26,20 +30,24 @@ happened: read the state before repeating it.
 | `org` | slug | no | read this organization only (403 `not_a_member` when the user is not one) |
 
 ```json
-{"identity": {"sub": "…", "handle": "octo", "agent": true, "client_id": "dcr_…", "consented_org": "acme"},
+{"identity": {"sub": "…", "handle": "octo", "agent": true, "client_id": "dcr_…", "consented_org": "u-7d9b0c3e", "consented_org_name": "Acme"},
  "scopes": ["sema:org.read", "sema:repos.write", "offline_access"],
- "orgs": [{"slug": "acme", "role": "member", "display_name": "Acme", "agent_access": true, "agent_scopes": null,
+ "orgs": [{"slug": "u-7d9b0c3e", "role": "member", "display_name": "Acme", "agent_access": true, "agent_scopes": null,
            "permissions": ["sema:org.read", "sema:repos.write"],
-           "setup": {"state": "no_installation", "next_step": {"action": "install_github_app", "description": "…", "url": "https://sema.merget.ai/orgs/acme/settings/github"},
+           "setup": {"state": "no_installation", "next_step": {"action": "install_github_app", "description": "…", "url": "https://sema.merget.ai/orgs/u-7d9b0c3e/settings/github"},
                      "counts": {…}, "github": {…}, "access": {…}}}],
- "next_step": {"action": "install_github_app", "description": "…", "url": "…", "org": "acme"}}
+ "next_step": {"action": "install_github_app", "description": "…", "url": "…", "org": "u-7d9b0c3e", "org_name": "Acme"}}
 ```
 
-`consented_org` is the organization this agent was approved for (null: all
-the user's). `role` is the role an agent acts with there: always `member`,
-whoever its user is, since an agent never acts as an owner. `permissions` is
-what this token may do in that organization: its scopes within the owner's
-cap, empty when agents are off there. States and actions:
+`display_name` is what to call the organization (null when its owner set
+none: then its slug is its name); Merget's own text writes Acme
+(`u-7d9b0c3e`). `consented_org` is the organization this agent was approved
+for (null: all the user's), and `consented_org_name` its display name; the
+top-level `next_step` carries `org` and `org_name` the same way. `role` is
+the role an agent acts with there: always `member`, whoever its user is,
+since an agent never acts as an owner. `permissions` is what this token may
+do in that organization: its scopes within the owner's cap, empty when
+agents are off there. States and actions:
 [setup-states.md](setup-states.md).
 
 No tool connects GitHub. For `install_github_app`, `next_step.url` is the
