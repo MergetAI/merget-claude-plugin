@@ -51,13 +51,15 @@ read tools are unchanged.
   from `sema_status` or `sema_org_get`), and by its slug only when it has
   none; the slug (`u-7d9b0c3e` in the examples) is only the `org` argument
   and the URL segment, and choosing among several organizations is asked by
-  name, adding the slug to those whose names match ignoring case. The name
-  is taken from the structured fields (`display_name`, `org_name`,
-  `consented_org_name`, `organizations[].display_name`), never copied from
-  tool text, which writes every named organization as
-  `` `Name` (`slug`) ``, the name in a code span of its own, and prints a
-  refusal's text, list and object details as JSON in a code span; the
-  human never sees those backticks.
+  name, adding the slug to those whose names match ignoring case. On a
+  successful result the name is taken from `structuredContent`
+  (`display_name`, `consented_org_name`, `next_step.org_name`,
+  `sema_installation_sync`'s `org_name`); a refusal has none, so there it
+  is the decoded JSON of the `org_name` or `organizations` detail line,
+  which prints text, list and object details as JSON in a code span. It is
+  never taken from the `` `Name` (`slug`) `` label Merget's headings and
+  messages write, the name in a code span of its own, and the human never
+  sees those backticks.
   `consented_org_name`, `next_step.org_name`, `org_name` on
   `agent_scope_disabled`, on the organization's `agent_access_disabled` and
   on `sema_installation_sync`'s answer, and `organizations` on the

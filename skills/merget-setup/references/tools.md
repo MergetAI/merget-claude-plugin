@@ -48,13 +48,16 @@ happened: read the state before repeating it.
 ```
 
 `display_name` is what to call the organization (null when its owner set
-none: then its slug is its name). Merget's own text writes the name and
-the slug each in a code span, `` `Acme` (`u-7d9b0c3e`) `` (the slug alone,
-`` `u-7d9b0c3e` ``, when there is no name), so say the name from this field,
-never by copying the text, and without the backticks. `consented_org` is
-the organization this agent was approved for (null: all the user's), and
-`consented_org_name` its display name; the top-level `next_step` carries `org` and `org_name` the
-same way. `role` is the role an agent acts with there: always `member`,
+none: then its slug is its name). Merget's own markdown labels the
+organization with the name and the slug each in a code span,
+`` `Acme` (`u-7d9b0c3e`) `` (the slug alone, `` `u-7d9b0c3e` ``, when there
+is no name): take the name from this field, never from that label, and say
+it without the backticks. `consented_org` is the organization this agent
+was approved for (null: all the user's), and `consented_org_name` its
+display name; the top-level `next_step` carries `org` and `org_name` the
+same way. A refusal has no `structuredContent`: there the name is the
+decoded JSON of its `org_name` or `organizations` detail line (above, and
+SKILL.md, "Naming an organization"). `role` is the role an agent acts with there: always `member`,
 whoever its user is, since an agent never acts as an owner. `permissions` is
 what this token may do in that organization: its scopes within the owner's
 cap, empty when agents are off there. States and actions:
