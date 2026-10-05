@@ -1,9 +1,10 @@
 # Graph tools: arguments and results
 
 Every tool below is `POST /v1/repos/:owner/:name/graph/:tool` on the HTTP
-API, `sema_graph_<tool>` through MCP (with `repo` added; in Claude Code
-`mcp__plugin_merget_merget__sema_graph_<tool>` from this plugin's server)
-and `sema graph <tool>` on the CLI. Scope `sema:graph.read`. Shapes as served
+API, `merget_graph_<tool>` through MCP (with `repo` added; in Claude Code
+`mcp__plugin_merget_merget__merget_graph_<tool>` from this plugin's server,
+`mcp__merget__merget_graph_<tool>` from a server added by hand as `merget`)
+and `sema graph <tool>` on the CLI. Scope `merget:graph.read`. Shapes as served
 by `api_version: "2026-09"`. Merget builds a commit's graph on first use: the
 first call on a fresh commit answers `graph_pending` (202) with
 `retry_after_secs`, and the same call succeeds once the build lands.
@@ -122,7 +123,7 @@ control-dependence path), then one cross-method hop with provenance.
 `truncated`, `dropped` says what was cut, in order — narrow the seed or the
 direction rather than retrying.
 
-## `diff` (`sema_graph_diff`)
+## `diff` (`merget_graph_diff`)
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -141,7 +142,7 @@ plus added. Typical use: `rev: "pr:42:base"`,
 `to: "pr:42:head"` for "what did this PR change at symbol level", or
 `rev: "<run.base_sha>"`, `to: "branch:main"` for "what moved under it".
 
-## `finding` (`sema_graph_finding`)
+## `finding` (`merget_graph_finding`)
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -155,7 +156,7 @@ plus the `slice` result above seeded at its `file:line` on the run's head
 The run fixes the tree, so `rev` is only a fallback. This is the right
 first call for "why does this finding exist".
 
-## `intent` (`sema_graph_intent`)
+## `intent` (`merget_graph_intent`)
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -185,23 +186,23 @@ to do is in SKILL.md → "Errors".
 "Who calls `sdscatlen` on the PR head?"
 
 ```json
-{"tool": "sema_graph_callers", "arguments": {"repo": "acme/widgets", "rev": "pr:118:head", "at": "sdscatlen"}}
+{"tool": "merget_graph_callers", "arguments": {"repo": "acme/widgets", "rev": "pr:118:head", "at": "sdscatlen"}}
 ```
 
 "What does line 430 of `src/sds.c` depend on, on the PR head, briefly?"
 
 ```json
-{"tool": "sema_graph_slice", "arguments": {"repo": "acme/widgets", "rev": "pr:118:head", "at": "src/sds.c:430", "direction": "back", "hops": 1, "max_tokens": 1500}}
+{"tool": "merget_graph_slice", "arguments": {"repo": "acme/widgets", "rev": "pr:118:head", "at": "src/sds.c:430", "direction": "back", "hops": 1, "max_tokens": 1500}}
 ```
 
 "What did the PR change at symbol level?"
 
 ```json
-{"tool": "sema_graph_diff", "arguments": {"repo": "acme/widgets", "rev": "pr:118:base", "to": "pr:118:head"}}
+{"tool": "merget_graph_diff", "arguments": {"repo": "acme/widgets", "rev": "pr:118:base", "to": "pr:118:head"}}
 ```
 
 "Why does finding `13592653589793238462` exist?"
 
 ```json
-{"tool": "sema_graph_finding", "arguments": {"repo": "acme/widgets", "fingerprint": "13592653589793238462"}}
+{"tool": "merget_graph_finding", "arguments": {"repo": "acme/widgets", "fingerprint": "13592653589793238462"}}
 ```

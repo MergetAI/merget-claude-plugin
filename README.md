@@ -3,8 +3,8 @@
 Connects Claude Code to Merget — the semantic merge queue — through the
 remote MCP server at `https://sema.merget.ai/mcp`, and adds two skills:
 
-- **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state (`sema_pr_findings`, `sema_pr_runs`, `sema_run_findings`, `sema_queue_status`).
-- **merget-graph** — typed queries over Merget's code property graphs of any commit: symbols, callers, callees, def-use, slices, graph diff, a finding's slice, a PR side's intent (`sema_graph_*`). Merget builds a commit's graph on first use, so the first call on a fresh commit may answer `graph_pending` and succeed on the retry.
+- **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state (`merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`).
+- **merget-graph** — typed queries over Merget's code property graphs of any commit: symbols, callers, callees, def-use, slices, graph diff, a finding's slice, a PR side's intent (`merget_graph_*`). Merget builds a commit's graph on first use, so the first call on a fresh commit may answer `graph_pending` and succeed on the retry.
 
 Both skills only read: they never change a pull request, a branch or a queue.
 
@@ -106,9 +106,9 @@ to approve.
 
 | Scope | What the page says |
 |---|---|
-| `sema:findings.read` | Read pull-request and run findings, merge briefs and repository summaries |
-| `sema:graph.read` | Read graph tools over any commit Merget has built |
-| `sema:queue.read` | Read queue position, enforcement and branch relationships |
+| `merget:findings.read` | Read pull-request and run findings, merge briefs and repository summaries |
+| `merget:graph.read` | Read graph tools over any commit Merget has built |
+| `merget:queue.read` | Read queue position, enforcement and branch relationships |
 | `offline_access` | Stay connected without signing in again |
 
 - **Organization** — one of your organizations that uses Merget, or **All

@@ -1,6 +1,6 @@
 # The findings document
 
-`sema_pr_findings`, `sema_run_findings`, `GET /v1/repos/:owner/:name/pulls/:number/findings`
+`merget_pr_findings`, `merget_run_findings`, `GET /v1/repos/:owner/:name/pulls/:number/findings`
 and `sema pr` all return the same `PrFindingsDoc`. Fields are only added
 within an `api_version`; a removed or renamed field bumps the version.
 This page lists every field as served by `api_version: "2026-09"`.
@@ -16,7 +16,7 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `verdict` | object | `{status, blocking_count, warning_count, advisory_count, shadowed_count, conflict_count, would_block_in_queue_mode}`; once Merget serves the review reading, also `review_count` (absent when zero) and `inherited` (absent when empty), below |
 | `findings` | array | one entry per finding (below), sorted `(file, line, fingerprint)` |
 | `brief` | object \| null | `{summary, sections: [{title, markdown}]}`; `markdown` is fenced repository content |
-| `queue` | object \| null | the PR's queue block (below); present only with `sema:queue.read` and when the repository has a plan |
+| `queue` | object \| null | the PR's queue block (below); present only with `merget:queue.read` and when the repository has a plan |
 | `interpretation` | object | `{rules: [string], by_class: {blocking, warning, advisory, shadowed, suppressed, conflict, review: [fingerprint]}, lifecycle: {new_open, still_open, suppressed}, next_steps: [string]}`; `by_class.review` is absent when empty |
 | `links` | object | `{dashboard, queue, runs}` URLs |
 | `report` | object | the run's full report JSON; only with `include_report` |
@@ -95,7 +95,7 @@ This page lists every field as served by `api_version: "2026-09"`.
 The vocabulary matches Merget's dashboard (`docs/queue-automation.md` in the
 Merget repository).
 
-## `sema_pr_runs` / `…/pulls/:number/runs`
+## `merget_pr_runs` / `…/pulls/:number/runs`
 
 `{runs: [RunSummary]}`, newest first, 50 at most. `RunSummary` is
 `{id, status, head_sha, base_sha, prepared_head, started_at, finished_at, counts, details_url, check_run_url}`.

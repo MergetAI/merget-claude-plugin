@@ -68,10 +68,10 @@ requests ahead, that waits until they merge.
 
 ## What to do with each class
 
-- **blocking** — the thing to fix before merging. `interpretation.next_steps` already carries a line per blocking finding with `file:line`, its `kind` and its fingerprint. A Layer-2 one is an interaction Merget minted precise; a review one (`scope: review`) is this pull request's own break, blocking because the repository sets `review.l1` to `blocking`. For the *why*, use the `merget-graph` skill: `sema_graph_finding` with the `fingerprint` returns the finding with a dependence slice on the run's head.
+- **blocking** — the thing to fix before merging. `interpretation.next_steps` already carries a line per blocking finding with `file:line`, its `kind` and its fingerprint. A Layer-2 one is an interaction Merget minted precise; a review one (`scope: review`) is this pull request's own break, blocking because the repository sets `review.l1` to `blocking`. For the *why*, use the `merget-graph` skill: `merget_graph_finding` with the `fingerprint` returns the finding with a dependence slice on the run's head.
 - **review** — a break this pull request makes on its own against its predicted base, in the Layer-1 kinds (`broken-reference`, `deleted-dependency`, `signature-drift`, `duplicate-definition`): a call it leaves to something it removes or renames, a call with the old arguments, a definition it duplicates. It does not block, but the merged tree is broken either way: `interpretation.next_steps` says what to change on the branch ("update the call, or keep what it calls"). Never call it an interaction, and never say no action is needed.
 - **conflict** — a file git could not merge. Say what it is with, from its `message` ([Conflicts](#conflicts)); with `lifecycle: resolved`, Merget resolved it and it needs nothing. Never call it a blocking finding.
-- **warning** — a syntactic Layer-1 finding. State the provenance explicitly. Confirm with the code (or `sema_graph_callers`/`sema_graph_symbols` on `pr:<n>:head` and `pr:<n>:base`) before recommending a change; syntactic resolution can match the wrong definition.
+- **warning** — a syntactic Layer-1 finding. State the provenance explicitly. Confirm with the code (or `merget_graph_callers`/`merget_graph_symbols` on `pr:<n>:head` and `pr:<n>:base`) before recommending a change; syntactic resolution can match the wrong definition.
 - **advisory** — a Layer-2 interaction (`interference-dataflow`, `interference-confluence`, `interference-override`) without precise provenance. Explain it as "what this PR changes reaches / is reached by what the target changed", quote both `intent_a` and `intent_b`, and suggest a review of the meeting point. Do not call it blocking or count it as blocking.
 - **shadowed** — say which file is conflicted; the finding's message may be an artefact of the conflict markers. Once the conflict is resolved and Merget re-runs, re-read: the finding either disappears or comes back with a real class.
 - **suppressed** — mention only when the user asks about dismissed findings or about lifecycle counts.
@@ -91,7 +91,7 @@ comparison.
 
 ## Queue and enforcement
 
-- `queue` is present only when the token carries `sema:queue.read` and the repository has a plan; its absence says nothing about the PR.
+- `queue` is present only when the token carries `merget:queue.read` and the repository has a plan; its absence says nothing about the PR.
 - `queue.rank` of 1 with `merge_eligibility: eligible` and empty `blockers` means the PR is next. `ahead` lists the PR numbers before it; `relationships` names the PRs it interacts with (why it is grouped or ordered).
 - `queue.enforcement.status`: `enforced` — the GitHub merge queue requires Merget on `target_branch`; `not_enforced` — Merget's verdict is advisory in practice even in queue mode, `reasons` says what is missing; `unknown` — not verified recently; `not_applicable` — advisory mode. Mention it when the user asks why something merged or did not.
 - `predicted_base` is the target sha Merget expects the PR to meet; when it differs from `run.base_sha` the findings were computed against an older target and a re-run will follow.
