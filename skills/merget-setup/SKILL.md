@@ -61,6 +61,12 @@ When the human must choose among several organizations, list them by display nam
    - `needs: ["contents:write"]`: the GitHub App lacks Contents: write on this installation. A GitHub admin of the account accepts it on GitHub (the installation's settings page); then `sema_installation_sync`, and read readiness again. Setting the mode without it answers 409 `permission_missing`.
    - `recommended` entries (`administration:write`, `actions:write`) never block a mode. Pass their `reason` on so the human can decide.
 6. **Done** when `sema_status` reads `ready` (Merget is working on open pull requests) or `no_open_prs` (set up, waiting for the next pull request). Give the human a short checklist: the organization (by its display name), GitHub installation, the repository enabled, its mode, and anything still theirs to do — the owner's steps among them.
+7. **Offer auto-update** — in Claude Code, with this plugin installed from the `merget-queue` marketplace; skip it in any other agent. Claude Code updates a marketplace's plugins only when auto-update is on for it, and for `merget-queue` it is off until someone turns it on. Read `~/.claude/settings.json` (Windows: `%USERPROFILE%\.claude\settings.json`; under `CLAUDE_CONFIG_DIR` when that is set): when `extraKnownMarketplaces.merget-queue.autoUpdate` is already `true`, or the human says it is on, skip this step. Otherwise ask once, in one sentence, whether to turn on auto-update for Merget's plugin, so new skills and fixes arrive without them having to ask. **Never change the file without a clear yes.** On a yes:
+   - Set `"autoUpdate": true` on the `extraKnownMarketplaces.merget-queue` entry and leave its `source` exactly as it is (a changed source makes Claude Code fetch the marketplace again). When there is no such entry, add `"merget-queue": {"source": {"source": "github", "repo": "MergetAI/merget-claude-plugin"}, "autoUpdate": true}` inside `extraKnownMarketplaces`, creating that object if the file has none.
+   - Merge, never replace: keep every other key and entry, write valid JSON, and read the file back to check that it parses. If the file does not parse to begin with, change nothing and tell the human.
+   - Tell the human it takes effect from the next session, and that `/plugin` → Marketplaces → `merget-queue` turns it off again.
+
+   On a no, leave the file alone; the human can turn it on later under `/plugin` → Marketplaces → `merget-queue` → **Enable auto-update**.
 
 | Mode | Merget |
 |------|--------|
