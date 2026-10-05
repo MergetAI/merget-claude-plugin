@@ -6,8 +6,7 @@ remote MCP server at `https://sema.merget.ai/mcp`, and adds two skills:
 - **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state (`sema_pr_findings`, `sema_pr_runs`, `sema_run_findings`, `sema_queue_status`).
 - **merget-graph** — typed queries over Merget's code property graphs of any commit: symbols, callers, callees, def-use, slices, graph diff, a finding's slice, a PR side's intent (`sema_graph_*`). Merget builds a commit's graph on first use, so the first call on a fresh commit may answer `graph_pending` and succeed on the retry.
 
-Everything is read-only. Merget never changes a pull request, a branch or a
-queue on an agent's behalf.
+Both skills only read: they never change a pull request, a branch or a queue.
 
 > The tool ids and the CLI still carry `sema`, Merget's internal codename for
 > the merge queue. They are the API's names today; renaming them is a
