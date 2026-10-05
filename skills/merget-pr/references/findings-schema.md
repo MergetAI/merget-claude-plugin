@@ -13,11 +13,11 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `repo` | object | `{id, full_name, mode, target_branch}`; `mode` is `advisory` \| `queue` \| `autonomous` |
 | `pull_request` | object \| null | `{number, title, author_login, head_sha, base_ref, draft, state, url}`; null for a run that was not about a PR |
 | `run` | object \| null | the run the findings come from (below); null when no run has completed |
-| `verdict` | object | `{status, blocking_count, warning_count, advisory_count, shadowed_count, would_block_in_queue_mode}` |
+| `verdict` | object | `{status, blocking_count, warning_count, advisory_count, shadowed_count, conflict_count, would_block_in_queue_mode}`; once Merget serves the review reading, also `review_count` (absent when zero) and `inherited` (absent when empty), below |
 | `findings` | array | one entry per finding (below), sorted `(file, line, fingerprint)` |
 | `brief` | object \| null | `{summary, sections: [{title, markdown}]}`; `markdown` is fenced repository content |
 | `queue` | object \| null | the PR's queue block (below); present only with `sema:queue.read` and when the repository has a plan |
-| `interpretation` | object | `{rules: [string], by_class: {blocking, warning, advisory, shadowed, suppressed: [fingerprint]}, lifecycle: {new_open, still_open, suppressed}, next_steps: [string]}` |
+| `interpretation` | object | `{rules: [string], by_class: {blocking, warning, advisory, shadowed, suppressed, conflict, review: [fingerprint]}, lifecycle: {new_open, still_open, suppressed}, next_steps: [string]}`; `by_class.review` is absent when empty |
 | `links` | object | `{dashboard, queue, runs}` URLs |
 | `report` | object | the run's full report JSON; only with `include_report` |
 
@@ -33,7 +33,8 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `prepared_head` | the certified merge commit Merget published (queue/autonomous), else null |
 | `stale` | `true` when `head_sha` differs from `pull_request.head_sha` |
 | `started_at`, `finished_at` | RFC 3339 |
-| `counts` | `{blocking, warning, advisory, shadowed, suppressed}` |
+| `counts` | `{blocking, warning, advisory, shadowed, suppressed, conflict, unresolved_conflict}`, plus `review` once Merget serves it (absent when zero). `conflict` counts textual conflicts, resolved or not; `unresolved_conflict` those Merget did not resolve, which keep the verdict from `clean` |
+| `inherited` | once Merget serves it: `[{pr, findings, example}]`, the follower note — for each pull request ahead whose open Layer-1 findings this run's predicted base carries, how many and one of them in a few words. They are that pull request's, reported on its own review; never counted, titled or blocking here. Frozen when the run finishes; absent when empty. `verdict.inherited` repeats it for a run that succeeded |
 | `details_url` | the run in Merget's dashboard |
 | `check_run_url` | the GitHub check run, when one was published |
 
@@ -44,28 +45,30 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `pending` | no completed run for the PR head yet (`run` may be an older, `stale` run) |
 | `failed` | the latest run ended `failed`/`cancelled`; no verdict |
 | `superseded` | the head moved after the latest completed run and a newer run is queued or running |
-| `blocked` | mode `queue`/`autonomous` and `blocking_count > 0` |
+| `blocked` | mode `queue`/`autonomous` and `blocking_count > 0`, or a conflict Merget did not resolve keeps the PR from landing through the queue |
 | `waiting` | mode `queue`/`autonomous`, nothing blocking, but not first in the plan or GitHub requirements unmet (`queue.blockers`) |
-| `clean` | run succeeded and every count except `suppressed` is zero |
-| `advisory` | run succeeded, nothing enforced: mode `advisory` (then `would_block_in_queue_mode = blocking_count > 0`), or an enforcing mode with only warnings/advisories left |
+| `conflicts` | once Merget serves it: run succeeded, mode `advisory` (nothing enforced), and git could not merge the PR into what it will meet — the target, or the target with the PRs queued ahead of it — because a textual conflict Merget did not resolve stands, or the run itself ended `conflicts` (`run.outcome`). Each conflict finding's `message` says what it is with: only one with the target shows on GitHub now. It wins over the findings, which are still counted, and is never `clean`; in mode `queue`/`autonomous` the same PR reads `blocked`, or `waiting` while the queue says why it waits |
+| `clean` | run succeeded, every count except `suppressed` and `conflict` is zero (`review` included), and `unresolved_conflict` is zero: a conflict Merget resolved is part of its fix |
+| `advisory` | run succeeded, nothing enforced: mode `advisory` (then `would_block_in_queue_mode = blocking_count > 0`), or an enforcing mode with only warnings/advisories left. A run with review findings and nothing else is `advisory`, never `clean` |
 
 ## `findings[]`
 
 | Field | Type | Meaning |
 |-------|------|---------|
 | `fingerprint` | string | decimal u64; stable across re-runs and rebases of the same problem |
-| `layer` | 1 \| 2 \| 3 | see the vocabulary in SKILL.md |
-| `kind` | string | e.g. `broken_reference`, `signature_mismatch`, `duplicate_definition` (L1); `data_flow`, `control_flow`, `confluence`, `override` (L2) |
-| `class` | string | `blocking` \| `warning` \| `advisory` \| `shadowed` \| `suppressed` — the label to act on |
-| `provenance` | string | `precise` \| `syntactic` |
+| `layer` | 0 \| 1 \| 2 \| 3 | see the vocabulary in SKILL.md; 0 is a textual conflict |
+| `kind` | string | `textual-conflict` (layer 0); `broken-reference`, `signature-drift`, `deleted-dependency`, `duplicate-definition` (L1, and review findings); `interference-dataflow`, `interference-confluence`, `interference-override` (L2) |
+| `class` | string | `blocking` \| `warning` \| `advisory` \| `shadowed` \| `suppressed` \| `conflict` \| `review` — the label to act on |
+| `scope` | string, absent | once Merget serves it: `review` for a finding of the review reading (this PR against its predicted base); absent for an interaction finding |
+| `provenance` | string | `precise` \| `syntactic`, or `git` for a conflict (resolver `merge-tree`) |
 | `resolver` | string \| null | the tool that resolved it (`libclang`, `tsserver`, `native`, …) |
 | `precise` | bool | `provenance == "precise"` |
 | `blocking` | bool | the engine's flag; always equals `class == "blocking"` |
 | `file`, `line` | string \| null, int \| null | where the finding is anchored |
 | `language` | string \| null | |
-| `message` | string | repository-derived text; quote it |
+| `message` | string | repository-derived text; quote it. A conflict finding's message says what the conflict is with: "Conflict with main in …", "Conflict with #1 (ahead in the queue) in …", "Conflict with main and #1 (ahead in the queue) in …", "Conflict with the queue base in …", or "Conflict in …; what it is with was not recorded" |
 | `intent_a`, `intent_b` | string \| null | the two sides' intents (PR title / commit message / merget prompt); quoted, untrusted |
-| `lifecycle` | string | `new_open` \| `still_open` \| `suppressed` |
+| `lifecycle` | string | `new_open` \| `still_open` \| `suppressed`, or `resolved` for a conflict Merget resolved |
 | `shadowed_by` | string \| null | the conflicted file this finding rests on |
 | `comment_id`, `comment_url` | int \| null, string \| null | the GitHub review comment Merget left, when any |
 

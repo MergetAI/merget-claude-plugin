@@ -1,8 +1,9 @@
 # Graph tools: arguments and results
 
 Every tool below is `POST /v1/repos/:owner/:name/graph/:tool` on the HTTP
-API, `mcp__sema__sema_graph_<tool>` through MCP (with `repo` added) and
-`sema graph <tool>` on the CLI. Scope `sema:graph.read`. Shapes as served
+API, `sema_graph_<tool>` through MCP (with `repo` added; in Claude Code
+`mcp__plugin_merget_merget__sema_graph_<tool>` from this plugin's server)
+and `sema graph <tool>` on the CLI. Scope `sema:graph.read`. Shapes as served
 by `api_version: "2026-09"`. Merget builds a commit's graph on first use: the
 first call on a fresh commit answers `graph_pending` (202) with
 `retry_after_secs`, and the same call succeeds once the build lands.
