@@ -67,12 +67,13 @@ auto-update for it (`/plugin` → Marketplaces → `merget-queue`). Otherwise ru
 `claude plugin update merget@merget-queue`, or **Update now** on the plugin
 in `/plugin` → Installed, then `/reload-plugins` in an open session.
 
-### Upgrading to 0.3.0
+### Upgrading to 0.4.0
 
 Merget renamed its tools: every tool id now starts with `merget_`, so
 Claude Code names this plugin's tools
 `mcp__plugin_merget_merget__merget_<name>`, such as
-`mcp__plugin_merget_merget__merget_pr_findings`. A permission rule that
+`mcp__plugin_merget_merget__merget_pr_findings` or
+`mcp__plugin_merget_merget__merget_queue_action`. A permission rule that
 names one of the old tools no longer matches: approve the tool again when
 Claude Code asks, and write a rule that denied or asked about an old tool
 again with the new name — until you do, it applies to no tool. A rule that
