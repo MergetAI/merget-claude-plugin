@@ -32,9 +32,20 @@ no longer answers to the `sema_*` ids that 0.3.1 and earlier teach.
   `mcp__plugin_merget_merget__sema_queue_action`,
   `mcp__merget__sema_graph_slice`, …) no longer match and must be approved
   again: approve each tool when Claude Code asks, and rewrite a `deny` or
-  `ask` rule with the new name, since one naming an old tool applies to no
-  tool. A rule naming only the server (`mcp__plugin_merget_merget`) still
-  covers every tool. README, new: Upgrading to 0.4.0, with the same advice.
+  `ask` rule with the new name (`mcp__plugin_merget_merget__merget_<name>`,
+  or `mcp__merget__merget_<name>` for a server added by hand), since one
+  naming an old tool applies to no tool. A rule naming only the server
+  (`mcp__plugin_merget_merget`, or `mcp__merget`) still covers every tool.
+  Claude Code names the tools from the list the server sends, so the old
+  rules stop matching once Merget serves the new names, whichever version
+  of the plugin runs. README, new: Merget's new tool names, with the same
+  advice.
+- Copies of the skills outside the plugin, in `~/.claude/skills/` or in
+  another agent, do not update with it and keep teaching the `sema_*` ids.
+  README, Skills in other agents, new: the `skills` tool that Merget's
+  setup prompt installs them with (`npx -y skills add …`) updates them too
+  (`npx -y skills update -g` with the four skills' names), and a copy made
+  by hand has to be made again; Merget's new tool names points there.
 - The MCP server names itself `merget` (`serverInfo.name`, was `sema`); this
   plugin's server was already `merget`, so `/mcp` still lists
   `plugin:merget:merget`. The server's `_meta` keys are `merget.api_version`,

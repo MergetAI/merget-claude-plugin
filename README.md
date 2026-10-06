@@ -151,18 +151,25 @@ Without auto-update, run `claude plugin update merget@merget-queue` in a
 terminal, or **Update now** on the plugin in `/plugin` → Installed, then
 `/reload-plugins` in an open session.
 
-### Upgrading to 0.4.0
+### Merget's new tool names
 
-Merget renamed its tools: every tool id now starts with `merget_`, so
-Claude Code names this plugin's tools
-`mcp__plugin_merget_merget__merget_<name>`, such as
+Merget renamed its tools: every tool id now starts with `merget_` where it
+started with `sema_`. Claude Code names a server's tools from the list the
+server sends, so whichever version of this plugin you run, it names this
+plugin's tools `mcp__plugin_merget_merget__merget_<name>`, such as
 `mcp__plugin_merget_merget__merget_pr_findings` or
-`mcp__plugin_merget_merget__merget_queue_action`. A permission rule that
-names one of the old tools no longer matches: approve the tool again when
-Claude Code asks, and write a rule that denied or asked about an old tool
-again with the new name — until you do, it applies to no tool. A rule that
-names only the server, `mcp__plugin_merget_merget`, still covers every
-tool. The [CHANGELOG](CHANGELOG.md) lists the new names.
+`mcp__plugin_merget_merget__merget_queue_action`; for a server you added by
+hand as `merget`, they are `mcp__merget__merget_<name>`. A permission rule
+that names one of the old tools no longer matches: approve the tool again
+when Claude Code asks, and write a rule that denied or asked about an old
+tool again with the new name — until you do, it applies to no tool. A rule
+that names only the server, `mcp__plugin_merget_merget` (or `mcp__merget`),
+still covers every tool. The [CHANGELOG](CHANGELOG.md) lists the new names.
+
+The skills teach the new names from version 0.4.0 of this plugin. Copies of
+them outside the plugin, in `~/.claude/skills/` or in another agent, do not
+update with it and still teach the old ones: update or copy them again, as
+[Skills in other agents](#skills-in-other-agents) describes.
 
 ### Upgrading from 0.2.0
 
@@ -474,9 +481,19 @@ its permissions in Merget under **Settings › Agents**.
 
 ## Skills in other agents
 
-The skills are plain markdown under `skills/`; copy them into the agent's
-skill directory when it has one (Codex: `~/.agents/skills/`), or into
-`.cursor/rules/` as rules.
+The skills are plain markdown under `skills/`. In an agent other than
+Claude Code, Merget's setup prompt installs them with the `skills` tool,
+which also brings them up to date:
+
+```sh
+npx -y skills add MergetAI/merget-claude-plugin --skill '*' --yes --global
+npx -y skills update -g merget-setup merget-operate merget-pr merget-graph
+```
+
+Or copy them into the agent's skill directory when it has one (Codex:
+`~/.agents/skills/`), or into `.cursor/rules/` as rules. A copy, like one in
+`~/.claude/skills/`, does not update: copy the skills again when the
+[CHANGELOG](CHANGELOG.md) says a version changed them.
 
 ## Layout
 
