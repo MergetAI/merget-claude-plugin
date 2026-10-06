@@ -166,6 +166,15 @@ tool again with the new name — until you do, it applies to no tool. A rule
 that names only the server, `mcp__plugin_merget_merget` (or `mcp__merget`),
 still covers every tool. The [CHANGELOG](CHANGELOG.md) lists the new names.
 
+Other clients keep a choice made per tool under the tool's id too: a tool
+switched off in claude.ai, Claude Desktop, Cursor or VS Code, or a list of
+the server's tools in Codex's `config.toml`, names an old id and now applies
+to no tool. Make such a choice again under the new names. To keep an agent
+from changing repositories or the merge queue, whatever its client calls
+the tools, switch its `merget:repos.write` and `merget:queue.write` off in
+Merget instead ([Signing in again](#signing-in-again) says where): Merget
+enforces those itself.
+
 The skills teach the new names from version 0.4.0 of this plugin. Copies of
 them outside the plugin, in `~/.claude/skills/` or in another agent, do not
 update with it and still teach the old ones: update or copy them again, as

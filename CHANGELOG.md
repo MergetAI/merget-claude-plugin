@@ -66,6 +66,14 @@ names the new id.
   rules stop matching once Merget serves the new names, whichever version
   of the plugin runs. README, new: Merget's new tool names, with the same
   advice.
+- The same holds for a choice another client keeps per tool: a tool
+  switched off in claude.ai, Claude Desktop, Cursor or VS Code, or a list
+  of the server's tools in Codex's `config.toml`, names a `sema_*` id and
+  applies to no tool once Merget serves the new names; it has to be made
+  again under them. README, Merget's new tool names, says so, and that
+  switching an agent's `merget:repos.write` and `merget:queue.write` off in
+  Merget keeps it from changing repositories or the merge queue whatever
+  its client calls the tools.
 - Copies of the skills outside the plugin, in `~/.claude/skills/` or in
   another agent, do not update with it and keep teaching the `sema_*` ids.
   README, Skills in other agents, new: the `skills` tool that Merget's
