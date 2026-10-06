@@ -7,10 +7,10 @@ by the API (`api_version`, the `Merget-Api-Version` response header): a plugin
 release never changes what the server answers, only what the skills teach and
 which tools `.mcp.json` titles.
 
-## 0.4.0 — 2026-10-05
+## 0.4.0 — 2026-10-06
 
 Needs the Merget release that serves its tools as `merget_*`; that release
-no longer answers to the `sema_*` ids that 0.3.0 and earlier teach.
+no longer answers to the `sema_*` ids that 0.3.1 and earlier teach.
 
 - Tool ids are `merget_*`, each in place of its `sema_*` id: the twelve
   that read pull requests and graphs, `merget_pr_findings`,
