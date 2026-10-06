@@ -3,8 +3,12 @@
 `merget_pr_findings`, `merget_run_findings` and
 `GET /v1/repos/:owner/:name/pulls/:number/findings` all return the same
 `PrFindingsDoc`. Fields are only added within an `api_version`; a removed
-or renamed field bumps the version. This page lists every field as served
-by `api_version: "2026-09"`.
+or renamed field bumps the version. One change was made within `2026-09`
+instead, once: Merget renamed its MCP tool ids and server name, its
+`_meta` keys (`merget.error` below) and the count keys of run and
+analytics rows and of `report`, and serves none of the old names; a
+finding's `resolver` has been `null` since. This page lists every field as
+served by `api_version: "2026-09"`.
 
 ## Top level
 

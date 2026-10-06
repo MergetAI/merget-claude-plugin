@@ -3,20 +3,37 @@
 The plugin's version is `.claude-plugin/plugin.json` `version`, mirrored in
 the marketplace manifest (`.claude-plugin/marketplace.json`). Bump both
 together. A plugin release never changes what the server answers, only what
-the skills teach and which tools `.mcp.json` titles. The API versions the
-shape of its documents, the findings document among them (`api_version`, also
-sent as the `Merget-Api-Version` response header), but not the MCP tool ids:
-Merget renamed every tool to `merget_*` (see 0.4.0) within `api_version`
-`2026-09`.
+the skills teach and which tools `.mcp.json` titles.
+
+The API versions the shape of its documents, the findings document among
+them (`api_version`, also sent as the `Merget-Api-Version` response header):
+within a version fields are only added, and a removed or renamed field bumps
+it. Merget's rename to its own name (see 0.4.0) is the one exception, made
+once within `api_version` `2026-09`, and Merget serves these under their new
+names or values only:
+
+- the MCP tool ids, `sema_*` now `merget_*`, and the server's name
+  (`serverInfo.name`), `sema` now `merget`;
+- the `_meta` keys `sema.api_version`, `sema.scope` and `sema.error`, now
+  `merget.api_version`, `merget.scope` and `merget.error`;
+- the count keys of run and analytics rows and of a run's report,
+  `sema_l1` … `git_clean_but_sema_flagged`, now `merget_l1` …
+  `git_clean_but_merget_flagged`;
+- a finding's `resolver`, now always `null`, and a graph edge's resolver,
+  now `name` or `receiver`: the provenance tier alone.
+
+The version header became `Merget-Api-Version` at the same time;
+`Sema-Api-Version` comes beside it until a later Merget release drops it.
 
 ## 0.4.0 — 2026-10-06
 
 Needs the Merget release that renamed its tools to `merget_*`: its
 `tools/list` names them, its `initialize` answer names the server `merget`
 (`serverInfo.name`), and its MCP responses carry `Merget-Api-Version`. Its
-`api_version` is still `2026-09`, since tool ids are outside the API's
-version. It no longer answers to the `sema_*` ids that 0.3.1 and earlier
-teach: a call to one is refused with `unknown_tool`, which names the new id.
+`api_version` is still `2026-09`: the rename is the one exception to what a
+version promises (see above). It no longer answers to the `sema_*` ids that
+0.3.1 and earlier teach: a call to one is refused with `unknown_tool`, which
+names the new id.
 
 - Tool ids are `merget_*`, each in place of its `sema_*` id: the twelve
   that read pull requests and graphs, `merget_pr_findings`,
