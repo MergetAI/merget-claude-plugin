@@ -365,7 +365,7 @@ under `skills/` into `~/.claude/skills/` if you want them. Tools are named
 
 1. Open **Customize › Connectors** and select **Add custom connector**.
 2. Name it **Merget** and enter `https://sema.merget.ai/mcp` as its URL.
-3. Leave the OAuth client ID and secret empty: Merget has none to give you. If the dialog offers **Authentication** and **OAuth client** choices, choose **Sign in now** and **Register automatically**, not **Use Claude's published identity**. You can't change these settings after you add the connector.
+3. Leave the OAuth client ID and secret empty: Merget has none to give you. If the dialog offers **Authentication** and **OAuth client** choices, choose **Sign in now** and **Use Claude's published identity**, which Claude recommends: Claude doesn't register with Merget, so the connection doesn't lapse, and Merget can reuse your approval when you connect again ([When you approved before](#when-you-approved-before)). **Register automatically** works too, for when Merget can't check Claude's published details. You can't change these settings after you add the connector.
 4. Select **Add**, then **Connect**, then sign in and approve the request in the browser window that opens.
 
 Claude Desktop uses your claude.ai account's connectors, so one connector

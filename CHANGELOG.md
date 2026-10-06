@@ -91,6 +91,12 @@ teach: a call to one is refused with `unknown_tool`, which names the new id.
   internal codename. A client that cannot sign in through OAuth gets its
   token from an OAuth client of its own (README, Without OAuth), and the
   0.2.0 upgrade steps no longer name the tool.
+- README, claude.ai and Claude Desktop: choose **Use Claude's published
+  identity**, as Merget's docs and setup prompt advise: the connector
+  doesn't register with Merget, so it doesn't lapse, and Merget can reuse
+  an approval. **Register automatically** works too, for when Merget can't
+  check Claude's published details. The README said to choose
+  **Register automatically**, not the published identity.
 
 ## 0.3.1 — 2026-10-05
 
