@@ -3,14 +3,10 @@
 Connects Claude Code to Merget — the semantic merge queue — through the
 remote MCP server at `https://sema.merget.ai/mcp`, and adds four skills:
 
-- **merget-setup** — the first run: where your organization stands (`sema_status`), the page in Merget's dashboard where you connect GitHub, enabling a first repository and choosing its automation mode from what GitHub lets Merget do there.
+- **merget-setup** — the first run: where your organization stands (`merget_status`), the page in Merget's dashboard where you connect GitHub, enabling a first repository and choosing its automation mode from what GitHub lets Merget do there.
 - **merget-operate** — Merget the way its dashboard runs it, short of an organization owner's steps: repository settings, the merge queue (retry, hold, merge what's ready, land), runs, analytics, a repository's validation secrets and the docs.
-- **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state (`sema_pr_findings`, `sema_pr_runs`, `sema_run_findings`, `sema_queue_status`).
-- **merget-graph** — typed queries over Merget's code property graphs of any commit: symbols, callers, callees, def-use, slices, graph diff, a finding's slice, a PR side's intent (`sema_graph_*`). Merget builds a commit's graph on first use, so the first call on a fresh commit may answer `graph_pending` and succeed on the retry.
-
-> The tool ids and the CLI still carry `sema`, Merget's internal codename for
-> the merge queue. They are the API's names today; renaming them is a
-> versioned API change and will land with its own release.
+- **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state (`merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`).
+- **merget-graph** — typed queries over Merget's code property graphs of any commit: symbols, callers, callees, def-use, slices, graph diff, a finding's slice, a PR side's intent (`merget_graph_*`). Merget builds a commit's graph on first use, so the first call on a fresh commit may answer `graph_pending` and succeed on the retry.
 
 ## What agents can and cannot do
 
@@ -155,11 +151,40 @@ Without auto-update, run `claude plugin update merget@merget-queue` in a
 terminal, or **Update now** on the plugin in `/plugin` → Installed, then
 `/reload-plugins` in an open session.
 
+### Merget's new tool names
+
+Merget renamed its tools: every tool id now starts with `merget_`. Claude
+Code names a server's tools from the list the server sends, so whichever
+version of this plugin you run, it names this plugin's tools
+`mcp__plugin_merget_merget__merget_<name>`, such as
+`mcp__plugin_merget_merget__merget_pr_findings` or
+`mcp__plugin_merget_merget__merget_queue_action`; for a server you added by
+hand as `merget`, they are `mcp__merget__merget_<name>`. A permission rule
+that names one of the old tools no longer matches: approve the tool again
+when Claude Code asks, and write a rule that denied or asked about an old
+tool again with the new name — until you do, it applies to no tool. A rule
+that names only the server, `mcp__plugin_merget_merget` (or `mcp__merget`),
+still covers every tool. The [CHANGELOG](CHANGELOG.md) lists the new names.
+
+Other clients keep a choice made per tool under the tool's id too: a tool
+switched off in claude.ai, Claude Desktop, Cursor or VS Code, or a list of
+the server's tools in Codex's `config.toml`, names an old id and now applies
+to no tool. Make such a choice again under the new names. To keep an agent
+from changing repositories or the merge queue, whatever its client calls
+the tools, switch its `merget:repos.write` and `merget:queue.write` off in
+Merget instead ([Signing in again](#signing-in-again) says where): Merget
+enforces those itself.
+
+The skills teach the new names from version 0.4.0 of this plugin. Copies of
+them outside the plugin, in `~/.claude/skills/` or in another agent, do not
+update with it and still teach the old ones: update or copy them again, as
+[Skills in other agents](#skills-in-other-agents) describes.
+
 ### Upgrading from 0.2.0
 
-0.2.0 had you add a server of your own, `merget`, whose header helper asks
-the `sema` CLI for a token. Remove it before you sign in, along with any
-other `merget` server you added yourself:
+0.2.0 had you add a server of your own, `merget`, whose header helper
+fetched a token for it. Remove it before you sign in, along with any other
+`merget` server you added yourself:
 
 ```
 claude mcp remove merget
@@ -173,10 +198,10 @@ per address, and a server you add yourself takes precedence over the
 plugin's: while one points at `https://sema.merget.ai/mcp`, `/mcp` lists it
 and not `plugin:merget:merget`.
 
-Any other client you set up from 0.2.0 still sends the `SEMA_TOKEN` bearer:
-delete what sends it — the `bearer_token_env_var` line (Codex), the
-`headers` entry (Cursor), or the same header in another client — then sign
-in as its section under
+Any other client you set up from 0.2.0 still sends a bearer token from your
+environment: delete what sends it — the `bearer_token_env_var` line
+(Codex), the `headers` entry (Cursor), or the same header in another
+client — then sign in as its section under
 [Connect from claude.ai, Claude Desktop, Claude Code, Cursor and VS Code](#connect-from-claudeai-claude-desktop-claude-code-cursor-and-vs-code)
 describes.
 
@@ -202,12 +227,12 @@ to approve.
 
 | Permission | Lets the agent |
 |------------|----------------|
-| `sema:findings.read` | read pull-request and run findings, merge briefs and repository summaries |
-| `sema:graph.read` | use the graph tools on any commit Merget has built |
-| `sema:queue.read` | read queue position, enforcement and branch relationships, and every repository's queue |
-| `sema:org.read` | read repositories and their settings, members, runs, analytics, GitHub installations, setup state and the docs |
-| `sema:repos.write` | change repository settings, including turning Merget on or off and the automation mode, manage a repository's validation secrets, and check GitHub installations again |
-| `sema:queue.write` | hold, release, retry and merge pull requests in the merge queue, including merge anyway |
+| `merget:findings.read` | read pull-request and run findings, merge briefs and repository summaries |
+| `merget:graph.read` | use the graph tools on any commit Merget has built |
+| `merget:queue.read` | read queue position, enforcement and branch relationships, and every repository's queue |
+| `merget:org.read` | read repositories and their settings, members, runs, analytics, GitHub installations, setup state and the docs |
+| `merget:repos.write` | change repository settings, including turning Merget on or off and the automation mode, manage a repository's validation secrets, and check GitHub installations again |
+| `merget:queue.write` | hold, release, retry and merge pull requests in the merge queue, including merge anyway |
 | `offline_access` | stay connected without signing in again |
 
 No permission lets an agent take an owner's step. Change them later in
@@ -236,8 +261,8 @@ access. No agent can change any of these.
   a hosted client's web address, such as `claude.ai`; or an app's own
   address, such as `cursor://anysphere.cursor-mcp`, which Cursor uses when
   it cannot start its callback on your computer. A **Known client** badge
-  marks a client Merget vouches for: its own CLI, or a web address of
-  Claude's (`claude.ai`, `claude.com`) or VS Code's (`vscode.dev`,
+  marks a client Merget vouches for, such as a web address of Claude's
+  (`claude.ai`, `claude.com`) or VS Code's (`vscode.dev`,
   `insiders.vscode.dev`). Any other address off your computer reads
   "Merget doesn't recognize this application" — expected for a client
   Merget doesn't list, but check that the address belongs to the client
@@ -252,7 +277,7 @@ access. No agent can change any of these.
 - **It will be allowed to** — one checkbox per permission the client asks
   for, all ticked: the scope's name, with a line about it beneath, such as
   "Change repository settings and validation secrets" for
-  `sema:repos.write`. **Stay connected without signing in again** is the
+  `merget:repos.write`. **Stay connected without signing in again** is the
   `offline_access` box, which is not a permission. Untick what this agent
   should not have; at least one permission must stay ticked.
 - **Organization** — one of your organizations that uses Merget, or **All
@@ -273,11 +298,11 @@ in again when the hour is up.
 ### When you approved before
 
 Merget remembers approvals: it does not ask you twice about a client with a
-published identity, such as Claude Code with claude.ai's, or about Merget's
-CLI. When you already approved this request — the same permissions, sent
-to the same place — and that approval still stands and was given or last
-used in the last 90 days, the page names the application and the
-organization you approved, says where access goes, and reads either
+published identity, such as Claude Code with claude.ai's. When you already
+approved this request — the same permissions, sent to the same place — and
+that approval still stands and was given or last used in the last 90 days,
+the page names the application and the organization you approved, says
+where access goes, and reads either
 
 - **Continue as before?**, when your browser was already signed in to
   Merget: select **Continue as** and your name to approve it again; or
@@ -349,7 +374,7 @@ under `skills/` into `~/.claude/skills/` if you want them. Tools are named
 
 1. Open **Customize › Connectors** and select **Add custom connector**.
 2. Name it **Merget** and enter `https://sema.merget.ai/mcp` as its URL.
-3. Leave the OAuth client ID and secret empty: Merget has none to give you. If the dialog offers **Authentication** and **OAuth client** choices, choose **Sign in now** and **Register automatically**, not **Use Claude's published identity**. You can't change these settings after you add the connector.
+3. Leave the OAuth client ID and secret empty: Merget has none to give you. If the dialog offers **Authentication** and **OAuth client** choices, choose **Sign in now** and **Use Claude's published identity**, which Claude recommends: Claude doesn't register with Merget, so the connection doesn't lapse, and Merget can reuse your approval when you connect again ([When you approved before](#when-you-approved-before)). **Register automatically** works too, for when Merget can't check Claude's published details. You can't change these settings after you add the connector.
 4. Select **Add**, then **Connect**, then sign in and approve the request in the browser window that opens.
 
 Claude Desktop uses your claude.ai account's connectors, so one connector
@@ -431,21 +456,12 @@ the connection.
 ### Without OAuth
 
 A client without OAuth sends a bearer token in the `Authorization` header
-instead; most can read it from the environment (Codex:
-`bearer_token_env_var = "SEMA_TOKEN"`; Cursor:
-`"Authorization": "Bearer ${env:SEMA_TOKEN}"` under `headers`). Merget's CLI
-([on request](#the-cli-on-its-own)) gets one: sign it in once with
-`sema login`, then, before starting the client, run
-
-```
-export SEMA_TOKEN="$(SEMA_TOKEN= sema token print)"
-```
-
-`SEMA_TOKEN=` keeps the CLI from printing back a token already exported; it
-prints its own, renewed when close to expiring. That token expires within
-the hour (`sema whoami` shows when) and the client never renews it: when
-calls start failing with 401, run the line again and restart the client.
-Keep the token out of anything you share.
+instead (`Authorization: Bearer <token>`). Get the token by signing in to
+Merget in your browser with an OAuth client of your own, as the HTTP API
+page of the docs in Merget's dashboard describes under Authentication. An
+access token lasts an hour, and a token passed this way is never renewed:
+when calls start failing with 401, get a new one. Keep it out of anything
+you share. If no client of yours can sign in, write to hello@merget.ai.
 
 ### A connection that stopped working
 
@@ -474,25 +490,19 @@ its permissions in Merget under **Settings › Agents**.
 
 ## Skills in other agents
 
-The skills are plain markdown under `skills/`; copy them into the agent's
-skill directory when it has one (Codex: `~/.agents/skills/`), or into
-`.cursor/rules/` as rules.
+The skills are plain markdown under `skills/`. In an agent other than
+Claude Code, Merget's setup prompt installs them with the `skills` tool,
+which also brings them up to date:
 
-## The CLI on its own
-
-`sema`, Merget's CLI, is available on request from hello@merget.ai; for
-agents, the MCP server is the way in.
-
-```
-sema login                  # sign in through the browser, once
-sema pr owner/repo#N        # the findings document; exit 2 when findings block
-sema graph callers --repo owner/name --rev pr:N:head --at src/x.rs:42
-sema whoami                 # subject, client, scopes, org, expiry
+```sh
+npx -y skills add MergetAI/merget-claude-plugin --skill '*' --yes --global
+npx -y skills update -g merget-setup merget-operate merget-pr merget-graph
 ```
 
-`sema graph` exits `3` while a commit's graph is still being built. In CI set
-`SEMA_TOKEN` (and `SEMA_API_URL` for a deployment other than
-`https://sema.merget.ai`); it is used verbatim and never refreshed.
+Or copy them into the agent's skill directory when it has one (Codex:
+`~/.agents/skills/`), or into `.cursor/rules/` as rules. A copy, like one in
+`~/.claude/skills/`, does not update: copy the skills again when the
+[CHANGELOG](CHANGELOG.md) says a version changed them.
 
 ## Layout
 

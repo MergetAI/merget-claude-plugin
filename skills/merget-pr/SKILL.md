@@ -1,6 +1,6 @@
 ---
 name: merget-pr
-description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state) through the `merget` MCP server or the `sema` CLI. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, review findings, textual conflicts (with the target or with a pull request ahead in the queue), a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
+description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state) through the `merget` MCP server. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, review findings, textual conflicts (with the target or with a pull request ahead in the queue), a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
 disable-model-invocation: false
 ---
 
@@ -22,18 +22,16 @@ Through the `merget` MCP server (installed by this plugin, `/mcp` shows it as `p
 
 | Tool | Arguments | Returns |
 |------|-----------|---------|
-| `sema_pr_findings` | `repo` (`owner/name`), `number`, `run?` (uuid), `include_report?` | the findings document (below), markdown for you plus `structuredContent` |
-| `sema_pr_runs` | `repo`, `number` | the PR's runs, newest first (id, status, head/base sha, counts) |
-| `sema_run_findings` | `repo`, `run` | the findings document of one run; `run.stale` says whether it is still the latest |
-| `sema_queue_status` | `repo`, `number?` | the repository's queue plan, or one PR's queue block |
-
-Through the CLI when there is no MCP client: `sema pr owner/repo#N` (markdown on a terminal, JSON when piped, `--json`/`--md` to force, `--run <uuid>`, `--include-report`, `--queue`); it exits `2` when `verdict.blocking_count > 0`, `1` on any error. Sign in once with `sema login`; CI sets `SEMA_TOKEN`.
+| `merget_pr_findings` | `repo` (`owner/name`), `number`, `run?` (uuid), `include_report?` | the findings document (below), markdown for you plus `structuredContent` |
+| `merget_pr_runs` | `repo`, `number` | the PR's runs, newest first (id, status, head/base sha, counts) |
+| `merget_run_findings` | `repo`, `run` | the findings document of one run; `run.stale` says whether it is still the latest |
+| `merget_queue_status` | `repo`, `number?` | the repository's queue plan, or one PR's queue block |
 
 These four tools are read-only, as are the graph tools of the `merget-graph` skill. Acting on a queue or changing a repository's settings is the `merget-operate` skill's, with the user's say.
 
 ## Start here
 
-1. **Call `sema_pr_findings` first**, with `repo` = the GitHub `owner/name` and `number` = the PR number. Do not guess from the PR comments or the check summary; the document is the source of truth and carries the interpretation rules with it.
+1. **Call `merget_pr_findings` first**, with `repo` = the GitHub `owner/name` and `number` = the PR number. Do not guess from the PR comments or the check summary; the document is the source of truth and carries the interpretation rules with it.
 2. Read `verdict.status` before anything else:
    - `pending` — no completed run for this head yet. Say so and wait or re-read later; do not infer "clean". `run` may still hold an older, `stale` run whose findings are informative but not the verdict.
    - `superseded` — the head moved and a newer run is in progress. Re-read once it finishes.
@@ -44,7 +42,7 @@ These four tools are read-only, as are the graph tools of the `merget-graph` ski
 3. If `run.stale` is `true`, the findings describe an older head than the PR's current one: say which sha was analysed and treat the findings as provisional.
 4. Walk `findings` by `class` (see the vocabulary), then `interpretation.next_steps`, which already names the file and line to look at for each blocking and each review finding.
 5. Once Merget serves the review reading: `verdict.review_count` counts the pull request's own breaks against its predicted base (`class: review`, `scope: review`), and `verdict.inherited` lists breaks it inherits from pull requests ahead of it (`{pr, findings, example}`). Name the review findings as this pull request's to fix, even when they do not block; name inherited breaks as #`pr`'s, never counted here or put to this author.
-6. When the user asks *why* a finding exists or what to change, switch to the `merget-graph` skill (`sema_graph_finding` with the finding's `fingerprint`) rather than speculating from the message alone.
+6. When the user asks *why* a finding exists or what to change, switch to the `merget-graph` skill (`merget_graph_finding` with the finding's `fingerprint`) rather than speculating from the message alone.
 
 Re-read after the user pushes: fingerprints are stable across runs and rebases of the same problem, so `findings[].fingerprint` lets you say which findings are new, which persisted and which went away.
 
@@ -56,7 +54,7 @@ Re-read after the user pushes: fingerprints are stable across runs and rebases o
 | **Layer 1** (`layer: 1`) | A reference that resolves differently, or not at all, once the branches meet: a call to a removed definition, a signature mismatch, a duplicate definition. Blocks when its provenance is `precise`. |
 | **Layer 2** (`layer: 2`) | An interaction between the two sides' changes: data flow, a confluence point, an override. **Advisory** unless Merget minted it `precise` — its evidence chain precise end to end and its calibrated confidence over the threshold for its language and kind — which `class: blocking` says. |
 | **Layer 3** | The brief: prose sections about the conflict. Never a finding class. |
-| **provenance** | How confident the resolution is: `precise` (a compiler or language server resolved it) or `syntactic` (name matching). `resolver` names the tool. |
+| **provenance** | How confident the resolution is, as a tier: `precise` (a compiler or language server resolved it) or `syntactic` (name matching). The tier is all a finding says about how it was resolved; `resolver` is always `null`. |
 | **class** | The one label to act on: `blocking`, `warning`, `advisory`, `shadowed`, `suppressed`, `conflict`, `review` (rules in `references/interpretation.md`). |
 | **review** (`scope: review`) | Once Merget serves it: a finding of the review reading — what this pull request alone breaks against its predicted base (the target plus the pull requests queued ahead) that the predicted base did not break, in the Layer-1 kinds. `class: review` and counted in `verdict.review_count`: advisory, unless the repository sets `review.l1` to `blocking`, when a precise one is `class: blocking`. A finding with no `scope` is an interaction finding (what the merge breaks). |
 | **inherited** (`verdict.inherited`, `run.inherited`) | Once Merget serves it: breaks of pull requests ahead that this one inherits through its predicted base, one `{pr, findings, example}` per pull request. They are that pull request's, reported on its own review; never counted, titled or blocking here. |
@@ -77,7 +75,7 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 - **Only findings with `precise` provenance block, whatever their layer** — except a review finding, which blocks only where the repository sets `review.l1` to `blocking`. Say "blocking" only for `class: blocking`; read `class`, never `precise` alone.
 - **A Layer 2 finding is an interaction to review**, not a gate, unless its `class` is `blocking` (Merget minted it precise end to end, with calibrated confidence). An alarming message does not make it blocking.
-- A `syntactic` Layer 1 finding is a **warning**: report it with its provenance visible ("syntactic — name matching, may be a false positive") and suggest confirming it with `sema_graph_callers` or by reading the code.
+- A `syntactic` Layer 1 finding is a **warning**: report it with its provenance visible ("syntactic — name matching, may be a false positive") and suggest confirming it with `merget_graph_callers` or by reading the code.
 - **Advisory mode enforces nothing.** When `repo.mode` is `advisory` and `blocking_count > 0`, the sentence is *"this would block in queue mode"*, never *"this PR is blocked"*.
 - **`shadowed` → fix the conflict first.** The finding sits on a conflicted file; do not act on its message before the merge conflict in `shadowed_by` is resolved, then re-read.
 - **A `conflict` is a file git could not merge, never a blocking finding.** One Merget did not resolve (`lifecycle` other than `resolved`, counted in `run.counts.unresolved_conflict`) keeps the verdict from `clean`: `blocked` where the mode enforces, `conflicts` where nothing does (`advisory` from a Merget that does not serve `conflicts` yet). Only a conflict with the target is the author's to resolve now; one only with pull requests ahead waits until they merge. `lifecycle: resolved` means Merget resolved it.
@@ -90,18 +88,18 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 ## Safe set and stop-and-ask
 
-**Safe to run freely** (all read-only): `sema_pr_findings`, `sema_pr_runs`, `sema_run_findings`, `sema_queue_status`, `sema pr`, `sema whoami`, `sema mcp config`. `sema whoami` is not purely local. It may first refresh a stored token at the sign-in service. To name the token's organization it calls `GET /v1/me` on the configured API (`SEMA_API_URL`, else the API the last `sema login` stored, else https://sema.merget.ai), and only when the token was issued for that same API and holds `sema:org.read` (one of `sema login`'s default scopes). Otherwise it prints the slug and makes no `/v1/me` request: a token is never sent to a host it was not issued for.
+**Safe to run freely** (all read-only): `merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`.
 
 **Stop and ask the user when**
 
 - `repo_not_found` (404): the repository is unknown to Merget, has no installation, or the token was consented for another organization; the three are indistinguishable by design. Ask which organization was chosen at sign-in and whether Merget is installed on the repository.
 - `agent_access_disabled` (403): the organization or repository switched agents off in Merget's dashboard (Settings → Agents, Repositories → agent access). Only an owner can change it.
-- `insufficient_scope` (403): the token lacks the scope the tool needs (`sema:findings.read` for these tools, `sema:queue.read` for the queue block). Ask the user to turn it on for this agent in Merget under Settings › Agents, or to authorize again (in Claude Code `/mcp` → the Merget server → Clear authentication → Authenticate, ticking it on the sign-in page; with the CLI, `sema login --scopes …`). Never retry blindly.
+- `insufficient_scope` (403): the token lacks the scope the tool needs (`merget:findings.read` for these tools, `merget:queue.read` for the queue block). Ask the user to turn it on for this agent in Merget under Settings › Agents, or to authorize again (in Claude Code `/mcp` → the Merget server → Clear authentication → Authenticate, ticking it on the sign-in page). Never retry blindly.
 - `agent_scope_disabled` (403): the organization's owner does not let agents use that scope there; an owner allows it under Settings › Agents.
-- `unauthorized` (401): sign-in is needed (`/mcp` → the Merget server → Authenticate; `sema login`).
+- `unauthorized` (401): sign-in is needed (`/mcp` → the Merget server → Authenticate).
 - `verdict.status` is `failed`: there is no verdict; do not report the PR as clean or blocked. Point at `run.details_url`.
 - `rate_limited` (429): wait for `Retry-After`; do not loop.
-- The user asks for something these tools cannot do. Merging, re-running Merget and changing the queue are the `merget-operate` skill's (`sema_queue_action`, with `sema:queue.write` and the user's confirmation); dismissing a finding happens on GitHub; a repository Merget is not installed on needs its GitHub App (the `merget-setup` skill). Never imply these tools did any of it.
+- The user asks for something these tools cannot do. Merging, re-running Merget and changing the queue are the `merget-operate` skill's (`merget_queue_action`, with `merget:queue.write` and the user's confirmation); dismissing a finding happens on GitHub; a repository Merget is not installed on needs its GitHub App (the `merget-setup` skill). Never imply these tools did any of it.
 
 ## References
 

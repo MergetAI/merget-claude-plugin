@@ -1,7 +1,7 @@
 # Operating tools: arguments and answers
 
-Each tool is `sema_<name>` on the `merget` MCP server
-(`mcp__plugin_merget_merget__sema_<name>` in Claude Code through this
+Each tool is `merget_<name>` on the `merget` MCP server
+(`mcp__plugin_merget_merget__merget_<name>` in Claude Code through this
 plugin). A success answers markdown for you in `content[0].text` and the
 document itself in `structuredContent`; a long document's text is cut at
 about 12,000 characters with a line pointing at `structuredContent`. A
@@ -12,7 +12,7 @@ null stands bare (`retryable: true`; a bare `org_name: null` means no
 name), and a text, a list or an object is JSON inside a code span, which
 you decode for the value (`` org_name: `"Acme"` `` means the name Acme; a
 value holding backticks gets a longer delimiter, and the JSON is everything
-between the two). The same body, as plain JSON, is in `_meta["sema.error"]`
+between the two). The same body, as plain JSON, is in `_meta["merget.error"]`
 for a client that exposes it; Claude Code passes only the text to the
 model. Every call is recorded in
 the organization's agent usage (Settings › Agents), a secret's value as
@@ -20,29 +20,29 @@ the organization's agent usage (Settings › Agents), a secret's value as
 
 Common arguments:
 
-- `org` — an organization's slug: the identifier you pass, and the segment in dashboard URLs. Name the organization to the user by its `display_name` (`sema_status`, `sema_org_get`), and by the slug only when that is null. Optional when this agent was approved for one organization or the user belongs to exactly one; otherwise 400 `invalid_argument` with `orgs` (their slugs) and `organizations` (`[{slug, display_name}]`): ask the user which one by name, and pass its slug.
+- `org` — an organization's slug: the identifier you pass, and the segment in dashboard URLs. Name the organization to the user by its `display_name` (`merget_status`, `merget_org_get`), and by the slug only when that is null. Optional when this agent was approved for one organization or the user belongs to exactly one; otherwise 400 `invalid_argument` with `orgs` (their slugs) and `organizations` (`[{slug, display_name}]`): ask the user which one by name, and pass its slug.
 - `repo` — `owner/name` as GitHub names it. Unknown, hidden from the user's GitHub account and another organization's repositories all answer 404 `repo_not_found`. A repository's agent access must be on: `findings` reads only, `findings_and_graph` also changes.
 - `cursor` — the previous page's `next_cursor`. `limit` — the page size.
 - `from`, `to` — RFC 3339, or `YYYY-MM-DD` (UTC midnight).
 
-Deadlines: 20 s; 30 s for `sema_status`; a minute for the tools that read
-GitHub live (`sema_repo_settings_get`, `sema_repo_update`,
-`sema_queue_action`, `sema_installation_sync`). A write that answers
+Deadlines: 20 s; 30 s for `merget_status`; a minute for the tools that read
+GitHub live (`merget_repo_settings_get`, `merget_repo_update`,
+`merget_queue_action`, `merget_installation_sync`). A write that answers
 `timeout` may still have happened: read the state before repeating it.
 
 | Tool | Read-only | Destructive | Idempotent |
 |------|-----------|-------------|------------|
-| `sema_status`, `sema_repos_list`, `sema_repo_settings_get`, `sema_queues_overview`, `sema_queue_get`, `sema_runs_list`, `sema_run_get`, `sema_analytics`, `sema_org_get`, `sema_docs` | yes | no | yes |
-| `sema_repo_update`, `sema_installation_sync`, `sema_secrets` | no | yes | yes |
-| `sema_queue_action` | no | yes | no |
+| `merget_status`, `merget_repos_list`, `merget_repo_settings_get`, `merget_queues_overview`, `merget_queue_get`, `merget_runs_list`, `merget_run_get`, `merget_analytics`, `merget_org_get`, `merget_docs` | yes | no | yes |
+| `merget_repo_update`, `merget_installation_sync`, `merget_secrets` | no | yes | yes |
+| `merget_queue_action` | no | yes | no |
 
-`sema_status` is described in the `merget-setup` skill. No tool takes an
+`merget_status` is described in the `merget-setup` skill. No tool takes an
 organization owner's step — connecting GitHub, pausing and resuming merges,
 the organization's name, budget and members, organization-wide secrets,
 turning strict protection off: an agent never acts as an owner (SKILL.md,
 "Human-only").
 
-## `sema_repos_list` — `sema:org.read`
+## `merget_repos_list` — `merget:org.read`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -53,7 +53,7 @@ turning strict protection off: an agent never acts as an owner (SKILL.md,
 
 Answer: `{items, next_cursor, policy_schema}`; each item `{id, full_name, default_branch, private, enabled, mode, target_branch, queue_label, agent_access, policy, paused_at, paused_by, pause_reason, viewer_permission, …}`. `viewer_permission` is `{pull, triage, push, maintain, admin}` (booleans) or null. A repository whose agent access is `off` is not listed to an agent.
 
-## `sema_repo_settings_get` — `sema:org.read`
+## `merget_repo_settings_get` — `merget:org.read`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -61,7 +61,7 @@ Answer: `{items, next_cursor, policy_schema}`; each item `{id, full_name, defaul
 
 Answer: `{repo, policy, policy_schema, readiness}`. `policy` is the customer view; `policy_schema` → [policy.md](policy.md); `readiness` (each mode's `{ready, needs, recommended}`, the App's permissions, the target branch's protection, the merge methods GitHub allows, `github_read`) → the `merget-setup` skill's tools reference.
 
-## `sema_repo_update` — `sema:repos.write`
+## `merget_repo_update` — `merget:repos.write`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -75,7 +75,7 @@ Answer: `{repo, policy, policy_schema, readiness}`. `policy` is the customer vie
 
 Needs maintain or admin on the repository in GitHub (live). Answers the repository document as stored now, with `policy_schema`. An agent sending `agent_access` is refused (403 `session_required`).
 
-## `sema_queues_overview` — `sema:queue.read`
+## `merget_queues_overview` — `merget:queue.read`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -91,7 +91,7 @@ Needs maintain or admin on the repository in GitHub (live). Answers the reposito
 
 Answer: `{items, next_cursor, totals}`; each item has `full_name`, `mode`, `open_pr_count`, `next_pr`, `queue_readiness`, `current_activity`, `attention_count`, `paused`, `freshness`.
 
-## `sema_queue_get` — `sema:queue.read`
+## `merget_queue_get` — `merget:queue.read`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -107,7 +107,7 @@ Answer: `{items, next_cursor, totals}`; each item has `full_name`, `mode`, `open
 
 The plan view → [queue.md](queue.md). A newer plan answers 409 `stale_generation`: start again from the first page.
 
-## `sema_queue_action` — `sema:queue.write`
+## `merget_queue_action` — `merget:queue.write`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -123,7 +123,7 @@ The plan view → [queue.md](queue.md). A newer plan answers 409 `stale_generati
 
 Every action, its answer and its refusals → [queue.md](queue.md).
 
-## `sema_runs_list` — `sema:org.read`
+## `merget_runs_list` — `merget:org.read`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -140,7 +140,7 @@ Every action, its answer and its refusals → [queue.md](queue.md).
 
 Answer: `{items, next_cursor}`, newest first; each item has `id`, `full_name`, `pr_number`, `pr_title`, `kind`, `trigger`, `head_sha`, `status`, `outcome`, `conclusion`, `started_at`, `finished_at`, `error`, ….
 
-## `sema_run_get` — `sema:org.read`
+## `merget_run_get` — `merget:org.read`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -150,7 +150,7 @@ Answer: `{items, next_cursor}`, newest first; each item has `id`, `full_name`, `
 
 Answer: `{run, full_name, pr_number, findings, block_reason, …}` — status, outcome, the pull request, findings, LLM usage, the resolvers' tool calls, why it was blocked, the CI wait and the conflicts. `run.policy_snapshot` is the customer policy the run used (Merget-managed values are never shown).
 
-## `sema_analytics` — `sema:org.read`
+## `merget_analytics` — `merget:org.read`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -175,7 +175,7 @@ Answer: `{run, full_name, pr_number, findings, block_reason, …}` — status, o
 
 Rates come with their denominators, and `observed_from` says where the data starts.
 
-## `sema_org_get` — `sema:org.read`
+## `merget_org_get` — `merget:org.read`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -184,11 +184,11 @@ Rates come with their denominators, and `observed_from` says where the data star
 
 Answer: `{org: {display_name, agent_access, agent_scopes, llm_budget_usd, llm_spend_month_usd, llm_budget_month, llm_budget_exhausted, …}, members? | members_error?}`. `display_name` is what to call the organization (null: its slug). `agent_scopes` null = every permission. `members` is `{org, seats, members: [{user, username, display_name, role, added_at}]}`, each member's own role in the organization; `members_error` (the account service's refusal, `{code, message}`; `agent_relay_unavailable` or `agent_relay_refused` when Merget could not ask it for this agent) replaces it when that service could not answer, and the settings still come back. Nothing here is changed by a tool: the name, the LLM budget and the members are an owner's, in the dashboard, and the agent switch and cap are the user's.
 
-## `sema_installation_sync` — `sema:repos.write`
+## `merget_installation_sync` — `merget:repos.write`
 
-`org`, `installation` (one id; omit for every installation, which also needs `sema:org.read`). Answer: `{org, org_name, installations: [{installation_id, ok, installation?, repositories?, error?}]}`; `org_name` is the organization's display name, what to call it (null: its slug) — the `merget-setup` skill's tools reference.
+`org`, `installation` (one id; omit for every installation, which also needs `merget:org.read`). Answer: `{org, org_name, installations: [{installation_id, ok, installation?, repositories?, error?}]}`; `org_name` is the organization's display name, what to call it (null: its slug) — the `merget-setup` skill's tools reference.
 
-## `sema_secrets` — `sema:repos.write`
+## `merget_secrets` — `merget:repos.write`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
@@ -199,6 +199,6 @@ Answer: `{org: {display_name, agent_access, agent_scopes, llm_budget_usd, llm_sp
 
 Answer: `list` → `{items: [{name, scope, created_by, updated_at, …}]}`, the repository's own secrets (`scope: "repo"`) and the organization-wide ones it receives (`scope: "org"`), never a value; `set` → the stored secret's name and when; `delete` → `{deleted, name, scope}`. `set` and `delete` change the repository's own secrets only: the organization-wide ones are an owner's, in the dashboard (Settings › GitHub › Organization secrets), and no tool changes them. A repository's secret overrides an organization one of the same name. The setup step of the repository's validation recipe receives them as environment variables; the build and test commands, Merget's conflict resolution and pull requests from forks never do.
 
-## `sema_docs` — `sema:org.read`
+## `merget_docs` — `merget:org.read`
 
 `page` (`^[a-z0-9-]{1,100}$`; omit for the list). Answer: `{page, markdown}` or `{pages}`; 404 `doc_not_found` lists the ids.

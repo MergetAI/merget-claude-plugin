@@ -1,13 +1,13 @@
 # Graph tools: arguments and results
 
 Every tool below is `POST /v1/repos/:owner/:name/graph/:tool` on the HTTP
-API, `sema_graph_<tool>` through MCP (with `repo` added; in Claude Code
-`mcp__plugin_merget_merget__sema_graph_<tool>` through this plugin, or
-`mcp__merget__sema_graph_<tool>` for a server added by hand as `merget`) and
-`sema graph <tool>` on the CLI. Scope `sema:graph.read`. Shapes as served
-by `api_version: "2026-09"`. Merget builds a commit's graph on first use: the
-first call on a fresh commit answers `graph_pending` (202) with
-`retry_after_secs`, and the same call succeeds once the build lands.
+API and `merget_graph_<tool>` through MCP (with `repo` added; in Claude Code
+`mcp__plugin_merget_merget__merget_graph_<tool>` through this plugin, or
+`mcp__merget__merget_graph_<tool>` for a server added by hand as `merget`).
+Scope `merget:graph.read`. Shapes as served by `api_version: "2026-09"`.
+Merget builds a commit's graph on first use: the first call on a fresh
+commit answers `graph_pending` (202) with `retry_after_secs`, and the same
+call succeeds once the build lands.
 
 ## Common pieces
 
@@ -27,17 +27,17 @@ named exactly.
 
 ```json
 {"file": "src/sds.c", "line": 301, "line_end": 318, "name": "sdscat", "full_name": "sds.c::sdscat",
- "kind": "METHOD", "key": "sds.c::sdscat#METHOD", "provenance": {"class": "precise", "resolver": "sema-link:name"}}
+ "kind": "METHOD", "key": "sds.c::sdscat#METHOD", "provenance": {"class": "precise", "resolver": "name"}}
 ```
 
 `kind` is the CPG node label (`METHOD`, `TYPE_DECL`, `CALL`, `IDENTIFIER`,
 …); `key` is deterministic across rebuilds. `provenance` is `null` when
-the node itself needed no resolution; otherwise `resolver` names the
-linker pass that made the edge — `sema-link:name` (a name binding, class
-`precise` or `syntactic`) or `sema-link:receiver` (the receiver-typed
-pass, class `receiver`). The `resolver` of a *finding* in the findings
-document is a different field and names the frontend (`libclang`,
-`tsserver`, `native`, …).
+the node itself needed no resolution; otherwise `class` is the tier
+(`precise` or `syntactic`) and `resolver` names the pass that made the
+edge — `name` (a name binding) or `receiver` (a method call resolved
+through the declared type of its receiver). The class `receiver` is left
+for an edge no pass graded. A *finding* in the findings document carries
+its tier in `provenance` alone; its `resolver` is always `null`.
 
 **The graph document** (every answer):
 
@@ -81,7 +81,8 @@ Use it to find exact locators before `slice`/`callers`, and to confirm a file's 
 `result: {direction, method: NodeView, rows: [{node: NodeView, site: NodeView | null, hop, via: [name], provenance: {class, resolver}}]}` sorted `(file, line, key)`, at most 200 rows then `truncated`. `site` is the call site, `hop` 1 or 2, `via` the method names a second-hop row went through.
 
 A row's `provenance.class` of `syntactic` or `receiver` means the edge came
-from name matching or a receiver heuristic. An empty `rows` with a
+from name matching, a guess or no grading at all, whichever pass made it
+(its `resolver`). An empty `rows` with a
 `provenance_note` saying resolution is syntactic for this language is
 "no callers found (syntactic)", not "no callers".
 
@@ -123,7 +124,7 @@ control-dependence path), then one cross-method hop with provenance.
 `truncated`, `dropped` says what was cut, in order — narrow the seed or the
 direction rather than retrying.
 
-## `diff` (`sema_graph_diff`)
+## `diff` (`merget_graph_diff`)
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -142,7 +143,7 @@ plus added. Typical use: `rev: "pr:42:base"`,
 `to: "pr:42:head"` for "what did this PR change at symbol level", or
 `rev: "<run.base_sha>"`, `to: "branch:main"` for "what moved under it".
 
-## `finding` (`sema_graph_finding`)
+## `finding` (`merget_graph_finding`)
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -156,7 +157,7 @@ plus the `slice` result above seeded at its `file:line` on the run's head
 The run fixes the tree, so `rev` is only a fallback. This is the right
 first call for "why does this finding exist".
 
-## `intent` (`sema_graph_intent`)
+## `intent` (`merget_graph_intent`)
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -193,7 +194,7 @@ stands bare (`retryable: false`), and a text, a list or an object is JSON
 inside a code span, which you decode — `suggestions` arrives as
 `` suggestions: `[{"line":301,"path":"src/sds.c","text":"sdscatlen"}]` ``
 (a value holding backticks gets a longer delimiter; the JSON is everything
-between the two). `_meta["sema.error"]` holds the same body as plain JSON
+between the two). `_meta["merget.error"]` holds the same body as plain JSON
 for a client that exposes it; Claude Code passes only the text to the
 model. The full table with what to do is in SKILL.md → "Errors".
 
@@ -202,23 +203,23 @@ model. The full table with what to do is in SKILL.md → "Errors".
 "Who calls `sdscatlen` on the PR head?"
 
 ```json
-{"tool": "sema_graph_callers", "arguments": {"repo": "acme/widgets", "rev": "pr:118:head", "at": "sdscatlen"}}
+{"tool": "merget_graph_callers", "arguments": {"repo": "acme/widgets", "rev": "pr:118:head", "at": "sdscatlen"}}
 ```
 
 "What does line 430 of `src/sds.c` depend on, on the PR head, briefly?"
 
 ```json
-{"tool": "sema_graph_slice", "arguments": {"repo": "acme/widgets", "rev": "pr:118:head", "at": "src/sds.c:430", "direction": "back", "hops": 1, "max_tokens": 1500}}
+{"tool": "merget_graph_slice", "arguments": {"repo": "acme/widgets", "rev": "pr:118:head", "at": "src/sds.c:430", "direction": "back", "hops": 1, "max_tokens": 1500}}
 ```
 
 "What did the PR change at symbol level?"
 
 ```json
-{"tool": "sema_graph_diff", "arguments": {"repo": "acme/widgets", "rev": "pr:118:base", "to": "pr:118:head"}}
+{"tool": "merget_graph_diff", "arguments": {"repo": "acme/widgets", "rev": "pr:118:base", "to": "pr:118:head"}}
 ```
 
 "Why does finding `13592653589793238462` exist?"
 
 ```json
-{"tool": "sema_graph_finding", "arguments": {"repo": "acme/widgets", "fingerprint": "13592653589793238462"}}
+{"tool": "merget_graph_finding", "arguments": {"repo": "acme/widgets", "fingerprint": "13592653589793238462"}}
 ```

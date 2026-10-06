@@ -1,9 +1,14 @@
 # The findings document
 
-`sema_pr_findings`, `sema_run_findings`, `GET /v1/repos/:owner/:name/pulls/:number/findings`
-and `sema pr` all return the same `PrFindingsDoc`. Fields are only added
-within an `api_version`; a removed or renamed field bumps the version.
-This page lists every field as served by `api_version: "2026-09"`.
+`merget_pr_findings`, `merget_run_findings` and
+`GET /v1/repos/:owner/:name/pulls/:number/findings` all return the same
+`PrFindingsDoc`. Fields are only added within an `api_version`; a removed
+or renamed field bumps the version. One change was made within `2026-09`
+instead, once: Merget renamed its MCP tool ids and server name, its
+`_meta` keys (`merget.error` below) and the count keys of run and
+analytics rows and of `report`, and serves none of the old names; a
+finding's `resolver` has been `null` since. This page lists every field as
+served by `api_version: "2026-09"`.
 
 ## Top level
 
@@ -16,7 +21,7 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `verdict` | object | `{status, blocking_count, warning_count, advisory_count, shadowed_count, conflict_count, would_block_in_queue_mode}`; once Merget serves the review reading, also `review_count` (absent when zero) and `inherited` (absent when empty), below |
 | `findings` | array | one entry per finding (below), sorted `(file, line, fingerprint)` |
 | `brief` | object \| null | `{summary, sections: [{title, markdown}]}`; `markdown` is fenced repository content |
-| `queue` | object \| null | the PR's queue block (below); present only with `sema:queue.read` and when the repository has a plan |
+| `queue` | object \| null | the PR's queue block (below); present only with `merget:queue.read` and when the repository has a plan |
 | `interpretation` | object | `{rules: [string], by_class: {blocking, warning, advisory, shadowed, suppressed, conflict, review: [fingerprint]}, lifecycle: {new_open, still_open, suppressed}, next_steps: [string]}`; `by_class.review` is absent when empty |
 | `links` | object | `{dashboard, queue, runs}` URLs |
 | `report` | object | the run's full report JSON; only with `include_report` |
@@ -60,8 +65,8 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `kind` | string | `textual-conflict` (layer 0); `broken-reference`, `signature-drift`, `deleted-dependency`, `duplicate-definition` (L1, and review findings); `interference-dataflow`, `interference-confluence`, `interference-override` (L2) |
 | `class` | string | `blocking` \| `warning` \| `advisory` \| `shadowed` \| `suppressed` \| `conflict` \| `review` — the label to act on |
 | `scope` | string, absent | once Merget serves it: `review` for a finding of the review reading (this PR against its predicted base); absent for an interaction finding |
-| `provenance` | string | `precise` \| `syntactic`, or `git` for a conflict (resolver `merge-tree`) |
-| `resolver` | string \| null | the tool that resolved it (`libclang`, `tsserver`, `native`, …) |
+| `provenance` | string | the tier: `precise` \| `syntactic`, or `git` for a conflict |
+| `resolver` | null | always `null`: Merget serves the provenance tier only |
 | `precise` | bool | `provenance == "precise"` |
 | `blocking` | bool | the engine's flag; always equals `class == "blocking"` |
 | `file`, `line` | string \| null, int \| null | where the finding is anchored |
@@ -92,10 +97,12 @@ This page lists every field as served by `api_version: "2026-09"`.
 | `next_pr` | the PR ranked right after, when any |
 | `enforcement` | `{status, reasons, target_branch, mode, app_id, checked_at}`: whether GitHub's merge queue enforces Merget on the target (`enforced`, `not_enforced`, `unknown`, `not_applicable`) |
 
-The vocabulary matches Merget's dashboard (`docs/queue-automation.md` in the
-Merget repository).
+Merget's dashboard shows these states in words, and its docs explain them
+on the `states` page (queue states, readiness labels, and protection
+statuses for `enforcement`): `merget_docs` with `page: "states"`, or the
+dashboard's Docs.
 
-## `sema_pr_runs` / `…/pulls/:number/runs`
+## `merget_pr_runs` / `…/pulls/:number/runs`
 
 `{runs: [RunSummary]}`, newest first, 50 at most. `RunSummary` is
 `{id, status, head_sha, base_sha, prepared_head, started_at, finished_at, counts, details_url, check_run_url}`.
@@ -108,10 +115,10 @@ result with `isError: true` and no `structuredContent`, whose text is
 `error <code> (HTTP <status>): <message>` plus one `key: value` line per
 other field. Read a field's value from its line: a number, a boolean or
 null stands bare (`number: 9`), and a text, a list or an object is JSON
-inside a code span, which you decode (`` scope: `"sema:findings.read"` ``
-means the scope sema:findings.read; a value holding backticks gets a longer
+inside a code span, which you decode (`` scope: `"merget:findings.read"` ``
+means the scope merget:findings.read; a value holding backticks gets a longer
 delimiter, and the JSON is everything between the two).
-`_meta["sema.error"]` holds the same body as plain JSON for a client that
+`_meta["merget.error"]` holds the same body as plain JSON for a client that
 exposes it; Claude Code passes only the text to the model.
 
 | Status | `code` | Meaning |
