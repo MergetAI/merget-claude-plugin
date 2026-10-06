@@ -2,15 +2,21 @@
 
 The plugin's version is `.claude-plugin/plugin.json` `version`, mirrored in
 the marketplace manifest (`.claude-plugin/marketplace.json`). Bump both
-together. The MCP tool set and the findings document are versioned separately
-by the API (`api_version`, the `Merget-Api-Version` response header): a plugin
-release never changes what the server answers, only what the skills teach and
-which tools `.mcp.json` titles.
+together. A plugin release never changes what the server answers, only what
+the skills teach and which tools `.mcp.json` titles. The API versions the
+shape of its documents, the findings document among them (`api_version`, also
+sent as the `Merget-Api-Version` response header), but not the MCP tool ids:
+Merget renamed every tool to `merget_*` (see 0.4.0) within `api_version`
+`2026-09`.
 
 ## 0.4.0 — 2026-10-06
 
-Needs the Merget release that serves its tools as `merget_*`; that release
-no longer answers to the `sema_*` ids that 0.3.1 and earlier teach.
+Needs the Merget release that renamed its tools to `merget_*`: its
+`tools/list` names them, its `initialize` answer names the server `merget`
+(`serverInfo.name`), and its MCP responses carry `Merget-Api-Version`. Its
+`api_version` is still `2026-09`, since tool ids are outside the API's
+version. It no longer answers to the `sema_*` ids that 0.3.1 and earlier
+teach: a call to one is refused with `unknown_tool`, which names the new id.
 
 - Tool ids are `merget_*`, each in place of its `sema_*` id: the twelve
   that read pull requests and graphs, `merget_pr_findings`,
@@ -58,7 +64,7 @@ no longer answers to the `sema_*` ids that 0.3.1 and earlier teach.
   (`offline_access` is unchanged), in the skills' refusal advice, the
   tools references, the findings schema and the README's permissions
   table and consent page. Merget's refusals, `merget_status` and
-  `merget_org_get` name them so from this release; the tokens Merget's
+  `merget_org_get` name them so from that Merget release; the tokens Merget's
   sign-in service issues may carry the `sema:*` names until shortly after
   it, and Merget accepts both meanwhile, so a connection approved under the
   old names keeps working and nothing needs signing in again. Merget's
