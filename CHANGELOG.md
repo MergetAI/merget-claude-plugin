@@ -69,6 +69,32 @@ no longer answers to the `sema_*` ids that 0.3.0 and earlier teach.
   token from an OAuth client of its own (README, Without OAuth), and the
   0.2.0 upgrade steps no longer name the tool.
 
+## 0.3.1 — 2026-10-05
+
+- README: install with auto-update on. Claude Code updates a plugin only
+  when auto-update is on for its marketplace; it is off for every
+  marketplace outside Anthropic's own, and a marketplace has no field to
+  turn it on
+  ([Claude Code docs](https://code.claude.com/docs/en/plugins/host-marketplace#turn-on-auto-update)).
+  "Install in Claude Code" now leads with the `~/.claude/settings.json`
+  entries — `merget-queue` under `extraKnownMarketplaces` with
+  `"autoUpdate": true`, and `merget@merget-queue` under `enabledPlugins` —
+  merged into the file's existing settings, which install the plugin at the
+  next session start and keep it current. The `/plugin` commands follow as
+  the alternative, with how to turn auto-update on afterwards (`/plugin` →
+  Marketplaces → `merget-queue` → Enable auto-update, or the same entry).
+  New "For a team": the same entries in a repository's
+  `.claude/settings.json`, applied once each teammate trusts the folder, and
+  managed settings for an organization. "Updating" says when a new version
+  arrives with auto-update on, and how to update without it.
+- Skill `merget-setup`, new last step: in Claude Code, offer to turn on
+  auto-update for `merget-queue`, so new skills and fixes arrive without
+  asking. Only on the human's yes, and only when it is not on already, the
+  agent sets `"autoUpdate": true` on that `extraKnownMarketplaces` entry in
+  `~/.claude/settings.json` (adding the entry when there is none), keeps
+  every other setting and the entry's `source`, checks the file still
+  parses, and says it takes effect from the next session.
+
 ## 0.3.0 — 2026-10-05
 
 Needs the Merget release that serves the fourteen operating tools and the

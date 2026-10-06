@@ -40,12 +40,52 @@ Fetch and execute the instructions to set me up for Merget from https://sema.mer
 ```
 
 The agent installs this plugin (or, in another agent, registers the MCP
-server and the skills), signs in, and walks Merget's setup with you. The
+server and the skills), signs in, and walks Merget's setup with you; in
+Claude Code it also offers to turn on the plugin's auto-update. The
 browser steps and the owner's steps are yours: signing in and approving the
 agent, and connecting GitHub, which an owner of your organization does in
 Merget's dashboard — the agent gives you the page.
 
 ## Install in Claude Code
+
+Claude Code keeps a plugin up to date only when auto-update is on for the
+marketplace it came from. Auto-update is off for every marketplace outside
+Anthropic's own, and a marketplace cannot turn it on for its users: you
+turn it on in your settings or in `/plugin`
+([Claude Code docs](https://code.claude.com/docs/en/plugins/host-marketplace#turn-on-auto-update)).
+The settings below install the plugin with auto-update on, in one step.
+
+### Install with auto-update on
+
+Add these entries to your user settings, `~/.claude/settings.json`
+(Windows: `%USERPROFILE%\.claude\settings.json`). Merge them into what the
+file already has: keep your other settings, and when it already has an
+`extraKnownMarketplaces` or `enabledPlugins` object, add the entry inside
+that object rather than writing the key a second time.
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "merget-queue": {
+      "source": { "source": "github", "repo": "MergetAI/merget-claude-plugin" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "merget@merget-queue": true
+  }
+}
+```
+
+Then start a new Claude Code session. Once it has started, Claude Code adds
+the `merget-queue` marketplace and downloads the plugin in the background;
+when it says `Plugins changed. Run /reload-plugins to activate.`, run
+`/reload-plugins` or start another session. `/plugin` then lists
+`merget-queue` under Marketplaces and `merget` under Installed. If you added
+the marketplace before, the same entry turns auto-update on for it from the
+next session.
+
+### Install with commands
 
 ```text
 /plugin marketplace add MergetAI/merget-claude-plugin
@@ -60,12 +100,56 @@ Claude Code reloads for you; if it warns that the reload would invalidate
 the prompt cache instead, run `/reload-plugins --force` or start a new
 session.
 
+These commands leave auto-update off. To turn it on, run `/plugin`, open
+**Marketplaces**, select `merget-queue` and choose **Enable auto-update**.
+Or add `"autoUpdate": true` to the `merget-queue` entry under
+`extraKnownMarketplaces` in `~/.claude/settings.json` (adding the marketplace
+writes that entry; if yours has none, add the entry shown
+[above](#install-with-auto-update-on)); it applies from the next session.
+
+### For a team
+
+To set Merget up for everyone who works in a repository, commit the same
+entries to the repository's `.claude/settings.json`:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "merget-queue": {
+      "source": { "source": "github", "repo": "MergetAI/merget-claude-plugin" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "merget@merget-queue": true
+  }
+}
+```
+
+Claude Code applies a repository's marketplace entries only after each
+teammate accepts the trust dialog for the folder; from then on the plugin is
+enabled for them in that repository, with auto-update on. The plugin loads
+from the marketplace's own copy, so they run no install command. A teammate
+who doesn't want it sets `"merget@merget-queue": false` in
+`.claude/settings.local.json`. Cloud sessions don't read these entries.
+
+For every machine in an organization, an administrator sets the same
+entries in managed settings
+([Manage plugins for your organization](https://code.claude.com/docs/en/plugins/org#require-a-marketplace-and-its-plugins)).
+
 ### Updating
 
-Claude Code updates plugins from this marketplace only when you turn on
-auto-update for it (`/plugin` → Marketplaces → `merget-queue`). Otherwise run
-`claude plugin update merget@merget-queue`, or **Update now** on the plugin
-in `/plugin` → Installed, then `/reload-plugins` in an open session.
+With auto-update on, Claude Code checks `merget-queue` in the background
+after a session starts and downloads a new version of the plugin when there
+is one. The session you are in keeps the version it loaded and says
+`Plugin updated: merget · Run /reload-plugins to apply`; the next session
+loads the new version either way. Setting `DISABLE_AUTOUPDATER`,
+`DISABLE_UPDATES` or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turns
+auto-update off unless `FORCE_AUTOUPDATE_PLUGINS=1` is set too.
+
+Without auto-update, run `claude plugin update merget@merget-queue` in a
+terminal, or **Update now** on the plugin in `/plugin` → Installed, then
+`/reload-plugins` in an open session.
 
 ### Upgrading to 0.4.0
 
