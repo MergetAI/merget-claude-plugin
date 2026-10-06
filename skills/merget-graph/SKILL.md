@@ -43,7 +43,7 @@ Choose `rev` from the grammar in [references/rev-grammar.md](references/rev-gram
 Every edge and node carries `provenance: {class, resolver}` or `null`. `class` is the tier and says how far to trust the edge; `resolver` only names the pass that made it: `name` (a name binding) or `receiver` (a method call resolved through the declared type of its receiver, `x.m()`).
 
 - `precise` — a unique binding (same-file definition, whole-tree-unique name, exact signature match, or a receiver chain with no guess in it). Trust it, whichever pass made it.
-- `syntactic` — name matching that a linker cap kept from being precise, or a receiver chain with a guess in it. May point at the wrong definition or miss one.
+- `syntactic` — name matching that could not prove a unique binding, or a receiver chain with a guess in it. May point at the wrong definition or miss one.
 - `receiver` — the class of an edge no pass graded (from a graph built before the receiver pass graded its edges). No better than `syntactic`; not to be confused with the resolver `receiver`.
 
 Cross-file call recall is **language-dependent** and low for some languages (single-file C and Rust in particular). Therefore:

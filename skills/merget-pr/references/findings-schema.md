@@ -93,8 +93,10 @@ by `api_version: "2026-09"`.
 | `next_pr` | the PR ranked right after, when any |
 | `enforcement` | `{status, reasons, target_branch, mode, app_id, checked_at}`: whether GitHub's merge queue enforces Merget on the target (`enforced`, `not_enforced`, `unknown`, `not_applicable`) |
 
-The vocabulary matches Merget's dashboard (`docs/queue-automation.md` in the
-Merget repository).
+Merget's dashboard shows these states in words, and its docs explain them
+on the `states` page (queue states, readiness labels, and protection
+statuses for `enforcement`): `merget_docs` with `page: "states"`, or the
+dashboard's Docs.
 
 ## `merget_pr_runs` / `…/pulls/:number/runs`
 

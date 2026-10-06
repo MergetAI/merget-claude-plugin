@@ -77,6 +77,12 @@ teach: a call to one is refused with `unknown_tool`, which names the new id.
   `sema-link:name` or `sema-link:receiver`. The skills read the class,
   never the resolver: a `precise` edge from the receiver pass is precise,
   and the class `receiver` is left for an edge no pass graded.
+  `merget-graph` describes `syntactic` without Merget's internals, as name
+  matching that could not prove a unique binding.
+- `merget-pr`'s references point at Merget's docs — the `findings` page for
+  the provenance tiers, the `states` page for the queue's states
+  (`merget_docs`, or the dashboard's Docs) — where they named documents
+  that only Merget's own repository holds.
 - No command-line fallbacks: the skills and the README no longer describe
   Merget's internal command-line tool, its commands or its environment
   variables; for an agent, the MCP server is the way in. `merget-pr`'s safe

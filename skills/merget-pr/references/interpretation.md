@@ -1,8 +1,9 @@
 # Interpreting a findings document
 
-The rules below are the ones Merget applies (they restate the provenance
-policy of the Merget repository, `docs/provenance-policy.md`, and are echoed
-in every document's `interpretation.rules`). The document wins if this
+The rules below are the ones Merget applies (they are echoed in every
+document's `interpretation.rules`, and Merget's docs explain the tiers on
+their `findings` page, under Confidence and certainty: `merget_docs` with
+`page: "findings"`, or the dashboard's Docs). The document wins if this
 page and the document ever disagree.
 
 ## Classification: one `class` per finding, first match wins
