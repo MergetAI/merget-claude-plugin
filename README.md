@@ -153,10 +153,10 @@ terminal, or **Update now** on the plugin in `/plugin` → Installed, then
 
 ### Merget's new tool names
 
-Merget renamed its tools: every tool id now starts with `merget_` where it
-started with `sema_`. Claude Code names a server's tools from the list the
-server sends, so whichever version of this plugin you run, it names this
-plugin's tools `mcp__plugin_merget_merget__merget_<name>`, such as
+Merget renamed its tools: every tool id now starts with `merget_`. Claude
+Code names a server's tools from the list the server sends, so whichever
+version of this plugin you run, it names this plugin's tools
+`mcp__plugin_merget_merget__merget_<name>`, such as
 `mcp__plugin_merget_merget__merget_pr_findings` or
 `mcp__plugin_merget_merget__merget_queue_action`; for a server you added by
 hand as `merget`, they are `mcp__merget__merget_<name>`. A permission rule
