@@ -3,7 +3,10 @@
 The plugin's version is `.claude-plugin/plugin.json` `version`, mirrored in
 the marketplace manifest (`.claude-plugin/marketplace.json`). Bump both
 together. A plugin release never changes what the server answers, only what
-the skills teach and which tools `.mcp.json` titles.
+the skills teach and which tools `.mcp.json` titles. To take a release back,
+release the content before it again under a new, higher version (0.4.1 with
+0.3.1's skills, say), so this list stays in order: Claude Code updates a
+copy whenever the version differs from the one it has.
 
 The API versions the shape of its documents, the findings document among
 them (`api_version`, also sent as the `Merget-Api-Version` response header):
