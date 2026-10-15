@@ -28,6 +28,76 @@ names or values only:
 The version header became `Merget-Api-Version` at the same time;
 `Sema-Api-Version` comes beside it until a later Merget release drops it.
 
+## 0.5.0 — 2026-10-15
+
+Needs the Merget release that serves `merget_batch`, the `batches` view of
+`merget_queue_get`, and the `amend` and `withdraw_amendment` actions of
+`merget_queue_action`: twenty-seven tools, fifteen of them operating ones.
+Against an earlier Merget, `merget_batch` is not among its tools and the
+view and the two actions are refused; the rest works as 0.4.0 teaches it.
+0.4.0 still works against the new release; it does not teach the new tool,
+view or actions.
+
+- New tool `merget_batch` (`merget:queue.read`, read-only): one batch, by
+  its id or `b-xxxxxxxx` name — its state, its members and the commit each
+  entered at, CI on the batch commit, what broke with Merget's prompt for a
+  coding agent (**Fix with your agent** in the dashboard), the batches that
+  isolated the cause, and the fixes submitted to Merget for the batch or
+  carried by its pull requests, each with its diff. `merget-operate` and its
+  tools reference teach it, and `.mcp.json` titles it "Merget: one batch".
+- `merget_queue_get` view `batches`: the repository's batches newest
+  first, settled and live; `state` keeps one state, or `live`, and
+  `failed: true` only the batches whose CI failed a required check; `limit`
+  at most 50. The queue reference describes a batch's row as the plan, the
+  view and `merget_batch` serve it — its `breakage` with the prompt,
+  `amendments` and `amendable` — the plan's `amendments_enabled`, and an
+  entry's `queue_break`.
+- `merget_queue_action` `amend` and `withdraw_amendment`: a fix for a batch
+  whose CI failed, handed to Merget instead of pushed to the pull request's
+  branch. Merget tests the batch again with it and lands it with the pull
+  request, never on the branch while the queue order stands. Pushing the
+  branch stays the first way; `amend` is for a user who wants the branch
+  left untouched. The queue reference gives the arguments, the patch's
+  limits (text only, at most 1 MiB, nothing under `.github/` or the other
+  paths Merget never writes), one fix per pull request
+  (`amendment_exists`), that Merget takes one only where GitHub requires
+  the Merget check (`amendment_unenforced`), the fix's states and every
+  refusal.
+- `merget-operate`, new: When a batch fails — find the failed batch (view
+  `batches` with `failed: true`, or the plan's batches), read it with
+  `merget_batch`, follow its prompt (reproduce on the commit it names, fix,
+  verify), then push the branch or, if the user wants it untouched, `amend`
+  with the prompt's base commit and diff; `withdraw_amendment` takes a fix
+  back. The skill confirms with the user before `amend`, which is recorded
+  under their name, and before `withdraw_amendment`, as before
+  `cancel_land`: the fix may be a colleague's.
+- `dismiss` and `undismiss`, which Merget already serves, are documented
+  for the first time: `dismiss` (`number`, `fingerprint`, `reason`) says a
+  finding is wrong, so it stops blocking from the next run on, in every
+  mode, and stays dismissed across pushes while it keeps its fingerprint;
+  `undismiss` undoes it. `merget-operate` confirms with the user first,
+  since the dismissal is recorded under their name, and dismisses only a
+  finding shown false, never to get past a real break.
+- `merget-pr` hands a batch whose CI failed, its fix and dismissing a
+  finding to `merget-operate`, with the queue work it already handed over;
+  it said dismissing a finding happens on GitHub.
+- `merget-operate`'s description names `merget_batch`, a failed batch and
+  dismissing a finding. To stay within the 1,024 characters a skill's
+  description may have, it no longer names `merget_repo_update` and
+  `merget_secrets`, which the skill still teaches.
+- README: `merget:queue.write` also dismisses findings and submits fixes
+  for failed batches, which Merget lands with the pull request; what agents
+  can do, and `merget-operate`'s line, say the same.
+- Plugin description: twenty-seven tools, fifteen that set up and operate
+  Merget, and what the new ones do.
+- The policy reference lists `batch.amendments` (Queue behavior, bool, on
+  unless false): whether Merget accepts fixes submitted to it for the
+  repository's failed batches.
+- `land`'s `commit_sha` and `tree_sha`, which earlier releases left out,
+  are documented: Merget refuses a land without `commit_sha` in autonomous
+  mode ("Land it now"), with `override` and with `kind: "lane"`
+  (`invalid_body`).
+
 ## 0.4.0 — 2026-10-06
 
 Needs the Merget release that renamed its tools to `merget_*`: its
