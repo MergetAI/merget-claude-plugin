@@ -81,9 +81,9 @@ There is no pause or resume: stopping and restarting Merget's own merges in auto
 `land` — **confirm first, every time**:
 
 - **queue mode** ("Merge N pull requests"): `count` and `members`, the first `count` entries of the offer exactly as the queue shows it — the plan's items whose `landing.tier` is `batch` or `sequence`, in `landing.position` order, each `{number, head_sha}`. A request for more than the green batch lands the rest in follow-up batches as each passes CI. If the queue moved, the answer is 409 `sequence_changed` with the current `offer`: show it and ask again; never resend on your own.
-- **autonomous mode** ("Land it now"): `batch_id`, a green batch GitHub refused to merge when Merget tried, whole.
-- **the passing lane**: `kind: "lane"` with its `batch_id`.
-- **merge anyway**: `override: true` lands a batch Merget certified **over failing required CI**, onto the target branch, irreversibly. Show `override_available` first — the checks that failed (`failed`), the pull request the search blamed (`convicted`), what Merget verified (`built`, or only `checked`) — and suggest the user clicks **Merge anyway** in the dashboard, where the failing checks are in front of them. Do it yourself only on an explicit yes to that batch.
+- **autonomous mode** ("Land it now"): `batch_id` and its `commit_sha` (as `merget_queue_get` shows the batch), a green batch GitHub refused to merge when Merget tried, whole.
+- **the passing lane**: `kind: "lane"` with its `batch_id` and `commit_sha`.
+- **merge anyway**: `override: true`, with the batch's `commit_sha`, lands a batch Merget certified **over failing required CI**, onto the target branch, irreversibly. Show `override_available` first — the checks that failed (`failed`), the pull request the search blamed (`convicted`), what Merget verified (`built`, or only `checked`) — and suggest the user clicks **Merge anyway** in the dashboard, where the failing checks are in front of them. Do it yourself only on an explicit yes to that batch.
 
 `dismiss` — **confirm first**, and only for a finding you have shown false (the reference resolves to a definition outside the changed files, say), never to get past a real break. `reason` says why, in at most 500 characters. The finding stops blocking from the next run on, in every mode, and stays dismissed across pushes while it keeps its fingerprint; the check and the findings document show who dismissed it and why. `undismiss` undoes it. Each asks for a fresh run of the pull request where the queue holds it (`rerun.requested` says whether one was).
 

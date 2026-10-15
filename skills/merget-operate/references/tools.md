@@ -132,6 +132,8 @@ Answer: `{batch, root, partitions, amendments}`. `batch` is the batch asked for;
 | `batch_id` | uuid; `amend` also `b-xxxxxxxx` | `land`: the batch (or lane) to land; `amend`: the failed batch the fix is for |
 | `count` | integer ≥ 1 | `land` in queue mode: how many pull requests of the offer |
 | `members` | `[{number, head_sha}]` | `land` in queue mode: the first `count` entries of the offer, in merge order |
+| `commit_sha` | 40-hex sha | `land` with `batch_id`: the batch's `commit_sha`, as `merget_queue_get` shows it; **required** in autonomous mode ("Land it now"), with `override` and with `kind: "lane"` — a land without it is refused `invalid_body` |
+| `tree_sha` | 40-hex sha | `land` with `batch_id`: the batch's `tree_sha`, as `merget_queue_get` shows it |
 | `override` | boolean | `land`: merge anyway over failing CI — irreversible |
 | `kind` | `sequence` \| `lane` | `land` / `cancel_land`: the passing lane's request instead of the sequence's |
 | `base_commit` | 40-hex sha | `amend`: the full sha the patch is against — the batch commit or a member's commit, as the batch's prompt names it |

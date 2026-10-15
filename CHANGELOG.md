@@ -90,6 +90,13 @@ view or actions.
   can do, and `merget-operate`'s line, say the same.
 - Plugin description: twenty-seven tools, fifteen that set up and operate
   Merget, and what the new ones do.
+- The policy reference lists `batch.amendments` (Queue behavior, bool, on
+  unless false): whether Merget accepts fixes submitted to it for the
+  repository's failed batches.
+- `land`'s `commit_sha` and `tree_sha`, which earlier releases left out,
+  are documented: Merget refuses a land without `commit_sha` in autonomous
+  mode ("Land it now"), with `override` and with `kind: "lane"`
+  (`invalid_body`).
 
 ## 0.4.0 — 2026-10-06
 

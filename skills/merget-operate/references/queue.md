@@ -81,13 +81,15 @@ on a member, a re-preparation, a reorder, a mode or policy change, a hold, or
 Merget published itself, or one landed on the target by someone else, is
 followed instead.
 
-**Autonomous mode: "Land it now".** `batch_id`: a green batch GitHub refused
-to merge when Merget tried, whole (`count` and `members`, when sent, must be
-exactly its members). A batch Merget is still landing on its own needs
+**Autonomous mode: "Land it now".** `batch_id` and `commit_sha` (the
+batch's, as the plan shows it; `tree_sha` may come beside it): a green batch
+GitHub refused to merge when Merget tried, whole (`count` and `members`, when
+sent, must be exactly its members). Without `commit_sha` the request is
+refused `invalid_body`, here, with `override` and with `kind: "lane"`. A batch Merget is still landing on its own needs
 nothing.
 
 **The passing lane.** `kind: "lane"` with the lane's `batch_id` (the live
-lane when absent), whole.
+lane when absent) and its `commit_sha`, whole.
 
 **Merge anyway.** `override: true`, with `batch_id` or else the one red
 batch on offer: lands a batch Merget certified although required CI **failed**
