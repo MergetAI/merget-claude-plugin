@@ -23,6 +23,7 @@
           "merget_repo_update": "Merget: change a repository's settings",
           "merget_queues_overview": "Merget: queues of an organization",
           "merget_queue_get": "Merget: queue of a repository",
+          "merget_batch": "Merget: one batch",
           "merget_queue_action": "Merget: act on a merge queue",
           "merget_runs_list": "Merget: runs of an organization",
           "merget_run_get": "Merget: one run",
