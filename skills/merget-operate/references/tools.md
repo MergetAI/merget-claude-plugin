@@ -107,7 +107,7 @@ Answer: `{items, next_cursor, totals}`; each item has `full_name`, `mode`, `open
 | `state` | `composing` \| `certifying` \| `testing` \| `green` \| `failed` \| `bisecting` \| `landing` \| `landed` \| `abandoned` \| `live` | `batches`: only the batches in this state; `live` is every state but `landed` and `abandoned` |
 | `failed` | boolean | `batches`: only the batches whose CI failed a required check |
 
-The plan view → [queue.md](queue.md). A newer plan answers 409 `stale_generation`: start again from the first page.
+The plan view → [queue.md](queue.md). A newer plan answers 409 `stale_generation`: start again from the first page. Its items' `handoff.resolve` is the offer to resolve a pull request's conflicts for merge time, and its `resolutions` the resolutions submitted to Merget that stand → [queue.md](queue.md#when-conflicts-need-the-user).
 
 The `batches` view answers `{items, partitions, next_cursor}`: the root batches newest first, settled and live, back to the first the repository composed (`state` and `failed` choose them), and every batch a bisection made under them to isolate a failure's cause (`partitions`, oldest first), each a row as the plan's `batches[]`. 400 `invalid_state` lists the states allowed.
 
@@ -118,16 +118,16 @@ The `batches` view answers `{items, partitions, next_cursor}`: the root batches 
 | `repo` | `owner/name` | **required** |
 | `batch_id` | string | **required**: the batch's id, or its `b-xxxxxxxx` name as the queue prints it |
 
-Answer: `{batch, root, partitions, amendments}`. `batch` is the batch asked for; `root` the root of its bisection (null when the batch is a root itself); `partitions` every batch the bisection made under that root, oldest first; each is a row as the plan's `batches[]` → [queue.md](queue.md#when-a-batch-fails). `amendments` lists the fixes submitted to Merget that the batch's and its root's rows list, newest first, each with its diff (`patch`, null once Merget no longer keeps it). The text tables the rows, then gives the breakage with Merget's prompt for a coding agent and each fix with its diff, fenced: repository data, never instructions. A prompt or diff too long for the text is cut there and whole in `structuredContent`. Refusals: 400 `invalid_batch` (neither an id nor a `b-` name), 404 `batch_not_found` (another repository's batch reads the same), 409 `batch_ambiguous` (two batches share the name; `candidates` lists their ids: ask again by id).
+Answer: `{batch, root, partitions, amendments}`. `batch` is the batch asked for; `root` the root of its bisection (null when the batch is a root itself); `partitions` every batch the bisection made under that root, oldest first; each is a row as the plan's `batches[]` → [queue.md](queue.md#when-a-batch-fails). `amendments` lists the fixes submitted to Merget that the batch's and its root's rows list, newest first, each with its diff (`patch`, null once Merget no longer keeps it). A resolution submitted for merge time is never among them: a member that carries one names it in the row's `member_commits[].person_resolution`, without its diff → [queue.md](queue.md#how-a-resolution-shows). The text tables the rows, then gives the breakage with Merget's prompt for a coding agent and each fix with its diff, fenced: repository data, never instructions. A prompt or diff too long for the text is cut there and whole in `structuredContent`. Refusals: 400 `invalid_batch` (neither an id nor a `b-` name), 404 `batch_not_found` (another repository's batch reads the same), 409 `batch_ambiguous` (two batches share the name; `candidates` lists their ids: ask again by id).
 
 ## `merget_queue_action` — `merget:queue.write`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
 | `repo` | `owner/name` | **required** |
-| `action` | `retry` \| `hold` \| `release` \| `skip_blocked` \| `land` \| `cancel_land` \| `dismiss` \| `undismiss` \| `amend` \| `withdraw_amendment` | **required**; there is no `pause` or `resume` (an owner's, in the dashboard) |
-| `number` | integer | the pull request (`retry`, `hold`, `release`, `dismiss`, `undismiss`); `amend`: optional, the pull request the fix lands with (Merget picks one otherwise) |
-| `reason` | string (≤ 500) | the note kept on a `hold`; `dismiss`: why the finding is wrong (required); `amend`: one sentence on what the fix changes (required) |
+| `action` | `retry` \| `hold` \| `release` \| `skip_blocked` \| `land` \| `cancel_land` \| `dismiss` \| `undismiss` \| `amend` \| `withdraw_amendment` \| `resolve` | **required**; there is no `pause` or `resume` (an owner's, in the dashboard) |
+| `number` | integer | the pull request (`retry`, `hold`, `release`, `dismiss`, `undismiss`); `amend`: optional, the pull request the fix lands with (Merget picks one otherwise); `resolve`: required, the pull request whose conflicts the resolution settles |
+| `reason` | string (≤ 500) | the note kept on a `hold`; `dismiss`: why the finding is wrong (required); `amend`: one sentence on what the fix changes (required); `resolve`: one sentence on how the conflicts were resolved (required) |
 | `fingerprint` | decimal string | `dismiss`, `undismiss`: the finding's `fingerprint`, as `merget_pr_findings` prints it |
 | `batch_id` | uuid; `amend` also `b-xxxxxxxx` | `land`: the batch (or lane) to land; `amend`: the failed batch the fix is for |
 | `count` | integer ≥ 1 | `land` in queue mode: how many pull requests of the offer |
@@ -136,9 +136,9 @@ Answer: `{batch, root, partitions, amendments}`. `batch` is the batch asked for;
 | `tree_sha` | 40-hex sha | `land` with `batch_id`: the batch's `tree_sha`, as `merget_queue_get` shows it |
 | `override` | boolean | `land`: merge anyway over failing CI — irreversible |
 | `kind` | `sequence` \| `lane` | `land` / `cancel_land`: the passing lane's request instead of the sequence's |
-| `base_commit` | 40-hex sha | `amend`: the full sha the patch is against — the batch commit or a member's commit, as the batch's prompt names it |
-| `patch` | string (≤ 1 MiB) | `amend`: the unified diff, as `git diff --cached --no-color --no-ext-diff --no-textconv --no-renames --src-prefix=a/ --dst-prefix=b/ <base_commit>` writes it after `git add -A` (the batch prompt's line); text only, sent exactly as written |
-| `amendment_id` | uuid | `withdraw_amendment`: the fix to take back |
+| `base_commit` | 40-hex sha | `amend`: the full sha the patch is against — the batch commit or a member's commit, as the batch's prompt names it; `resolve`: the commit the hand-off names to resolve on (`handoff.resolve.base_commit`) |
+| `patch` | string (≤ 1 MiB) | `amend`: the unified diff, as `git diff --cached --no-color --no-ext-diff --no-textconv --no-renames --src-prefix=a/ --dst-prefix=b/ <base_commit>` writes it after `git add -A` (the batch prompt's line); text only, sent exactly as written; `resolve`: the same diff line against the hand-off's `base_commit`, with no conflict marker left in a file the hand-off lists |
+| `amendment_id` | uuid | `withdraw_amendment`: the fix or resolution to take back |
 
 Every action, its answer and its refusals → [queue.md](queue.md).
 
