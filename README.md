@@ -227,7 +227,7 @@ to approve.
 
 | Permission | Lets the agent |
 |------------|----------------|
-| `merget:findings.read` | read pull-request and run findings, merge briefs and repository summaries |
+| `merget:findings.read` | read pull-request and run findings, merge briefs and repository summaries, and what pull requests cost in credits |
 | `merget:graph.read` | use the graph tools on any commit Merget has built |
 | `merget:queue.read` | read queue position, enforcement and branch relationships, and every repository's queue |
 | `merget:org.read` | read repositories and their settings, members, runs, analytics, GitHub installations, setup state and the docs |

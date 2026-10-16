@@ -14,7 +14,7 @@ page and the document ever disagree.
 | 2 | `scope == "review"` (once Merget serves it) | `blocking` when its `blocking` is true, else `review` | "this pull request breaks `<file:line>` against its predicted base; fix it on the branch" — it blocks only where the repository sets `review.l1` to `blocking`; classed by its `blocking` flag, never by `precise` alone |
 | 3 | `layer == 0` | `conflict` | "git could not merge `<file>`" and what it is with, from its `message` (see [Conflicts](#conflicts)); `lifecycle == "resolved"`: "Merget resolved it", or, where the run's held entry for that path has rung person, "a resolution submitted to Merget for merge time resolved it" — never a blocking finding |
 | 4 | `shadowed_by` is set | `shadowed` | "rests on the conflicted file `<shadowed_by>`; resolve that conflict first, then re-read" — never a gate |
-| 5 | `provenance == "precise"`, either layer | `blocking` | "blocking" (in an enforcing mode) or "would block in queue mode" (advisory mode); a Layer-2 one is an interaction Merget minted precise end to end, with calibrated confidence |
+| 5 | `provenance == "precise"`, either layer | `blocking` | "blocking" (in an enforcing mode) or "would block in queue mode" (advisory mode, unless `verdict.status` is `blocked`: then "blocking"); a Layer-2 one is an interaction Merget minted precise end to end, with calibrated confidence |
 | 6 | `layer == 1` | `warning` | "warning, syntactic provenance (name matching): confirm before acting" |
 | 7 | anything else (`syntactic` Layer 2, layer-3 notes) | `advisory` | "an interaction to review; it never blocks" |
 

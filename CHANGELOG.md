@@ -108,7 +108,8 @@ release no longer serves.
   conflicts for merge time, which Merget lands with the pull request; what
   agents can do, and `merget-operate`'s line, say the same. `merget-pr`'s
   line and what agents can do add what a pull request cost in credits
-  (`merget_pr_receipt`), and the owner's steps name the plan and the
+  (`merget_pr_receipt`), as does its permissions table under
+  `merget:findings.read`, and the owner's steps name the plan and the
   spending cap where they named the monthly LLM budget.
 - Plugin description: resolving a pull request's conflicts on the commit
   the queue lands for it, and that the agent asks before it submits a
