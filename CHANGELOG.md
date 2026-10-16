@@ -120,7 +120,8 @@ release no longer serves.
   made for it, in order, with its kind, cause, outcome and credits (a run
   Merget failed or abandoned is listed free), the totals and the periods
   they fall in, and `mode`, live billing or a preview that charges
-  nothing. Credits are the only unit: no model or token detail is served.
+  nothing. The receipt's only unit is credits: it serves no model or token
+  detail.
   `merget-pr` teaches it in its tools table and safe set, its findings
   schema reference gives the answer's fields, `merget-setup`'s
   permissions table names credits under `merget:findings.read`, and
@@ -128,7 +129,9 @@ release no longer serves.
 - That release bills in credits, and the skills say so. `merget_org_get`
   answers the plan and `billing` (used, included, cap, status,
   `paused_reason`) instead of the monthly LLM budget, and `merget_run_get`
-  a run's credits (`receipt`) instead of its LLM usage. The plan and the
+  a run's credits (`receipt`) in place of its LLM usage; where Merget
+  serves a run's usage, it is tokens by rung and phase (`llm_usage`), never
+  a model or a price. The plan and the
   spending cap are an owner's, under Settings › Billing, in
   `merget-operate`'s human-only list. An organization that used its
   monthly credits gets `merget_status`'s next step `credits_exhausted`

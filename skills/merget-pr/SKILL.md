@@ -47,7 +47,7 @@ These five tools are read-only, as are the graph tools of the `merget-graph` ski
 
 Re-read after the user pushes: fingerprints are stable across runs and rebases of the same problem, so `findings[].fingerprint` lets you say which findings are new, which persisted and which went away.
 
-When the user asks what a pull request cost, call `merget_pr_receipt`. Credits are the only unit Merget serves: never put a model, token or currency figure to it. A run Merget failed or abandoned is listed free, and in `mode: shadow` (a preview) nothing is charged.
+When the user asks what a pull request cost, call `merget_pr_receipt`. Its unit is credits, the unit Merget bills in: never put a model or currency figure to it, and never convert it to or from tokens (a run's token usage, where Merget serves it, measures work, not cost). A run Merget failed or abandoned is listed free, and in `mode: shadow` (a preview) nothing is charged.
 
 ## Vocabulary
 

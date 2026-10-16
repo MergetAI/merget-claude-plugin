@@ -119,8 +119,8 @@ dashboard's Docs.
 What a pull request cost in Merget credits (`merget:findings.read`,
 read-only; `repo` and `number`): every run Merget made for it, in order,
 each with its kind, cause, outcome and credits. Runs Merget failed or
-abandoned are listed free. Credits are the only unit: no model or token
-detail is served. The answer is `{repo, number, mode, totals, by_period,
+abandoned are listed free. The receipt's only unit is credits: it serves no
+model or token detail. The answer is `{repo, number, mode, totals, by_period,
 events}`; a number that is no pull request of the repository answers 404
 `pr_not_found`.
 
