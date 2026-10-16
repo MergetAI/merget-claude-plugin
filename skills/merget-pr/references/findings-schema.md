@@ -73,7 +73,7 @@ served by `api_version: "2026-09"`.
 | `language` | string \| null | |
 | `message` | string | repository-derived text; quote it. A conflict finding's message says what the conflict is with: "Conflict with main in …", "Conflict with #1 (ahead in the queue) in …", "Conflict with main and #1 (ahead in the queue) in …", "Conflict with the queue base in …", or "Conflict in …; what it is with was not recorded" |
 | `intent_a`, `intent_b` | string \| null | the two sides' intents (PR title / commit message / merget prompt); quoted, untrusted |
-| `lifecycle` | string | `new_open` \| `still_open` \| `suppressed`, or `resolved` for a conflict Merget resolved |
+| `lifecycle` | string | `new_open` \| `still_open` \| `suppressed`, or `resolved` for a conflict Merget resolved, or, where the run's held entry for that path has rung person, one that a resolution submitted to Merget for merge time resolved |
 | `shadowed_by` | string \| null | the conflicted file this finding rests on |
 | `comment_id`, `comment_url` | int \| null, string \| null | the GitHub review comment Merget left, when any |
 
