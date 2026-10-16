@@ -373,7 +373,7 @@ target branch.
 | `status` | Means |
 |----------|-------|
 | `proposed` | submitted; Merget applies it next |
-| `certifying` | applied to R0; Merget is preparing the pull request with it. Meanwhile no hand-off is served for the pull request |
+| `certifying` | applied to R0; Merget is preparing the pull request with it. Until that preparation starts, the pull request's last hand-off is still served, its offer reading `resolution_standing`; once it starts, no hand-off is served |
 | `accepted` | the preparation passed with it; it lands with the pull request in the queue |
 | `retest_failed` | CI failed on a batch with it; it still stands: withdraw it and resolve again, or push the branch |
 | `refused` | Merget could not take it, or the preparation with it was refused; `refusal` says why |
