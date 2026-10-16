@@ -4,8 +4,8 @@ Connects Claude Code to Merget — the semantic merge queue — through the
 remote MCP server at `https://sema.merget.ai/mcp`, and adds four skills:
 
 - **merget-setup** — the first run: where your organization stands (`merget_status`), the page in Merget's dashboard where you connect GitHub, enabling a first repository and choosing its automation mode from what GitHub lets Merget do there.
-- **merget-operate** — Merget the way its dashboard runs it, short of an organization owner's steps: repository settings, the merge queue (retry, hold, merge what's ready, land), a batch whose CI failed and its fix, dismissing a finding that is wrong, runs, analytics, a repository's validation secrets and the docs.
-- **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state (`merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`).
+- **merget-operate** — Merget the way its dashboard runs it, short of an organization owner's steps: repository settings, the merge queue (retry, hold, merge what's ready, land), a batch whose CI failed and its fix, a pull request's conflicts resolved for merge time, dismissing a finding that is wrong, runs, analytics, a repository's validation secrets and the docs.
+- **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state, and what it cost in credits (`merget_pr_findings`, `merget_pr_runs`, `merget_pr_receipt`, `merget_run_findings`, `merget_queue_status`).
 - **merget-graph** — typed queries over Merget's code property graphs of any commit: symbols, callers, callees, def-use, slices, graph diff, a finding's slice, a PR side's intent (`merget_graph_*`). Merget builds a commit's graph on first use, so the first call on a fresh commit may answer `graph_pending` and succeed on the retry.
 
 ## What agents can and cannot do
@@ -14,17 +14,17 @@ The agent acts as you, never as more: within the permissions you grant it
 when you sign in, and with your own GitHub permission on each repository.
 With every permission it can:
 
-- read pull requests' findings, runs and briefs, their place in the queue, and the code graph of any commit Merget has built;
+- read pull requests' findings, runs and briefs, what they cost in credits, their place in the queue, and the code graph of any commit Merget has built;
 - read your organization: its repositories and their settings, members, setup state, runs, analytics and GitHub installations;
 - change repositories: turn Merget on or off, choose the automation mode and target branch, change settings and manage a repository's validation secrets (with **Maintain** or **Admin** on the repository in GitHub);
 - check GitHub installations again, after you accept a permission or change the App's repositories;
-- drive the merge queue: retry, hold and release a pull request, merge what's ready, land, merge anyway over failing CI, dismiss a finding that is wrong, and submit a fix for a failed batch, which Merget lands with the pull request (with **Write** on the repository). The skills have it ask you before anything merges, and before it dismisses a finding or submits a fix.
+- drive the merge queue: retry, hold and release a pull request, merge what's ready, land, merge anyway over failing CI, dismiss a finding that is wrong, and submit a fix for a failed batch or a resolution of a pull request's conflicts for merge time, which Merget lands with the pull request (with **Write** on the repository). The skills have it ask you before anything merges, and before it dismisses a finding or submits a fix or a resolution.
 
 It never acts as an organization owner, even when you are the owner: in
 every organization its role is member. These stay with a person signed in
 to Merget's dashboard:
 
-- **The owner's steps**: connecting GitHub (installing Merget's GitHub App, connecting or releasing an installation), pausing and resuming merges, renaming the organization and its monthly LLM budget, adding and removing members, organization-wide validation secrets, and **Turn off strict**. No agent makes anyone an owner or is made one.
+- **The owner's steps**: connecting GitHub (installing Merget's GitHub App, connecting or releasing an installation), pausing and resuming merges, renaming the organization, changing its plan and spending cap, adding and removing members, organization-wide validation secrets, and **Turn off strict**. No agent makes anyone an owner or is made one.
 - **Deleting** an organization or an account.
 - **Every control over what agents may do**: the organization's agent switch and permission cap, each repository's agent access, and each agent's own permissions.
 - **The browser steps**: signing up, signing in and approving the agent, installing Merget's GitHub App.
@@ -227,12 +227,12 @@ to approve.
 
 | Permission | Lets the agent |
 |------------|----------------|
-| `merget:findings.read` | read pull-request and run findings, merge briefs and repository summaries |
+| `merget:findings.read` | read pull-request and run findings, merge briefs and repository summaries, and what pull requests cost in credits |
 | `merget:graph.read` | use the graph tools on any commit Merget has built |
 | `merget:queue.read` | read queue position, enforcement and branch relationships, and every repository's queue |
 | `merget:org.read` | read repositories and their settings, members, runs, analytics, GitHub installations, setup state and the docs |
 | `merget:repos.write` | change repository settings, including turning Merget on or off and the automation mode, manage a repository's validation secrets, and check GitHub installations again |
-| `merget:queue.write` | hold, release, retry and merge pull requests in the merge queue, including merge anyway; dismiss findings; and submit fixes for failed batches, which Merget lands with the pull request |
+| `merget:queue.write` | hold, release, retry and merge pull requests in the merge queue, including merge anyway; dismiss findings; and submit fixes for failed batches and resolutions of pull requests' conflicts for merge time, which Merget lands with the pull request |
 | `offline_access` | stay connected without signing in again |
 
 No permission lets an agent take an owner's step. Change them later in

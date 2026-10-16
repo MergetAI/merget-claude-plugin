@@ -7,6 +7,7 @@
         "ideToolTitles": {
           "merget_pr_findings": "Merget: pull request findings",
           "merget_pr_runs": "Merget: runs of a pull request",
+          "merget_pr_receipt": "Merget: credits of a pull request",
           "merget_run_findings": "Merget: findings of a run",
           "merget_queue_status": "Merget: queue status",
           "merget_graph_symbols": "Merget graph: symbols in a file",

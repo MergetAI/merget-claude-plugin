@@ -61,7 +61,11 @@ decoded JSON of its `org_name` or `organizations` detail line (above, and
 SKILL.md, "Naming an organization"). `role` is the role an agent acts with there: always `member`,
 whoever its user is, since an agent never acts as an owner. `permissions` is
 what this token may do in that organization: its scopes within the owner's
-cap, empty when agents are off there. States and actions:
+cap, empty when agents are off there. `billing_hold`, on an organization
+whose setup the agent may read, is null, or, while the organization has
+used its monthly credits, `{reason, plan, period, since, settings_path}`:
+Merget starts no work there, and the top-level `next_step` says
+`credits_exhausted`. States and actions:
 [setup-states.md](setup-states.md).
 
 No tool connects GitHub. For `install_github_app`, `next_step.url` is the
