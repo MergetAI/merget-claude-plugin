@@ -28,6 +28,67 @@ names or values only:
 The version header became `Merget-Api-Version` at the same time;
 `Sema-Api-Version` comes beside it until a later Merget release drops it.
 
+## 0.6.0 — 2026-10-16
+
+Needs the Merget release that serves resolve for merge time: the `resolve`
+action of `merget_queue_action`, the offer on each served hand-off
+(`handoff.resolve`), the queue's `resolutions` and a batch member's
+`person_resolution`. The tools stay twenty-seven, fifteen of them operating
+ones. Against an earlier Merget, `merget_queue_action` refuses `resolve`
+(`invalid_argument`: the action is not one it knows) and no hand-off
+carries `resolve`, so the skills offer resolving on the branch alone; the
+rest works as 0.5.0 teaches it. 0.5.0 still works against the new release;
+it does not teach resolving for merge time.
+
+- `merget_queue_action` `resolve` (`number`, `base_commit`, `patch`,
+  `reason`): a resolution of a pull request's handed-off conflicts, made on
+  R0 — the pull request's head merged onto the queue's predicted base, with
+  Merget's own resolutions where it has them and conflict markers in the
+  rest, published at `refs/merget-queue/resolve/<number>`, on no branch —
+  and handed to Merget instead of pushed to the branch. Merget checks it as
+  it checks its own resolutions, keeps it beside the pull request and lands
+  it with the pull request, never on the branch while the queue order
+  stands. Resolving on the branch stays the first way; `resolve` is offered
+  beside it. `withdraw_amendment` takes a resolution back as it takes a fix.
+- The queue reference describes the offer each served hand-off carries
+  (`handoff.resolve`: `eligible`, `base_commit`, `ref`, `queue_base`,
+  `over`, `paths`, `merget_paths`, `prompt_url`, `previous`) and every
+  reason one is not eligible (`not_enforced`, `fork_head`, `stacked`,
+  `resolution_standing`, `not_qualifying`, `rule_first`, `too_many_files`,
+  `preparing`, `unavailable`, `untrusted_base`, `nothing_to_resolve`); the
+  patch's rules (a fix's limits, and no conflict marker left in a file the
+  offer lists, checked at submission and again on the applied file); a
+  resolution's statuses; how it shows — the plan's `resolutions`, a pull
+  request's `queue.resolution`, a batch member's
+  `member_commits[].person_resolution` with what it leaves out of either
+  side (`left_out`); one resolution per pull request beside at most one
+  fix; and every refusal, among them the three a fix never gets:
+  `not_handed_off`, `stale_resolution_base` and `unresolved_conflict`.
+- `merget-operate`, new: When conflicts need the user — read the hand-off
+  and Merget's prompt with `merget_queue_status`, offer both ways with the
+  branch first, resolve on R0 fetched by its ref, write the patch with the
+  prompt's `git diff` line, confirm, `resolve`, and follow it to where it
+  lands. The skill confirms with the user before `resolve`, which is
+  recorded under their name, and its refusals table gains the three new
+  codes.
+- `merget-operate`'s description names resolving a pull request's
+  conflicts for merge time. To stay within the 1,024 characters a skill's
+  description may have, it no longer calls repository settings a JSON
+  merge patch checked against `policy_schema`, which the skill still
+  teaches.
+- `merget-pr` hands conflicts offered for merge time to `merget-operate`,
+  as it hands a failed batch, and its vocabulary names the queue block's
+  `handoff`.
+- The policy reference says `batch.amendments` also governs resolutions
+  submitted for merge time, and `merget_batch`'s reference that its
+  `amendments` never list one.
+- README: `merget:queue.write` also submits resolutions of pull requests'
+  conflicts for merge time, which Merget lands with the pull request; what
+  agents can do, and `merget-operate`'s line, say the same.
+- Plugin description: resolving a pull request's conflicts on the commit
+  the queue lands for it, and that the agent asks before it submits a
+  resolution. Still twenty-seven tools.
+
 ## 0.5.0 — 2026-10-15
 
 Needs the Merget release that serves `merget_batch`, the `batches` view of
