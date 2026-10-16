@@ -28,7 +28,7 @@ token holds.
 | `paused` | `{at, by, reason, stops_merges}` or null |
 | `current_batch`, `inflight_batches`, `batches`, `passing_lane` | the batches in CI and the live passing lane |
 | `batches[]` | each batch: `id`, `state`, `members`, `member_commits` (each member's `{number, head_sha, commit_sha}`, where it entered the batch, with `person_resolution` when it carries a resolution submitted for merge time, [below](#how-a-resolution-shows)), `commit_sha`, `ci`, `breakage`, `amendments` (the fixes submitted to Merget for it or carried by one of its pull requests, without their diffs) and `amendable` — the row `merget_batch` and the `batches` view serve too ([When a batch fails](#when-a-batch-fails)) |
-| `amendments_enabled` | whether the repository takes fixes and resolutions submitted to Merget: queue or autonomous mode, with its **Accept fixes submitted to Merget** setting (`batch.amendments`) on |
+| `amendments_enabled` | whether the repository takes fixes and resolutions submitted to Merget: queue or autonomous mode, with its **Accept fixes and conflict resolutions submitted to Merget** setting (`batch.amendments`) on |
 | `land_authorization`, `lane_authorization` | the standing land request (or the last settled within 24 hours): `{id, by, at, state, scope, override, members, landed, remaining, void_reason, finished_at, expires_at}`, or null |
 | `override_available` | the one red batch merge anyway could land now: `{batch_id, failed, convicted, verified, members}`, or null |
 | `viewer_permission` | the user's GitHub permission on the repository |
@@ -164,7 +164,12 @@ There are two ways to fix the batch. The first is the prompt's own: fix the
 pull request's branch and push it. The second leaves the branch untouched:
 hand the fix to Merget with `amend`, and Merget tests the batch again with it
 and lands it with the pull request. Use one or the other, not both: a push
-to the pull request's branch sets a submitted fix aside.
+to the pull request's branch sets a submitted fix aside, and a resolution
+submitted for merge time too ([A resolution beside a fix](#a-resolution-beside-a-fix)):
+a member that carries one has it in `member_commits[].person_resolution`, so
+say so before pushing. Where the batch failed because of that pull request,
+the resolution reads `retest_failed` in the plan's `resolutions`: withdraw
+it and resolve again, or push the branch.
 
 1. Find the batch: `merget_queue_get {repo, view: "batches", failed: true}`, the plan's `batches`, or the `queue_break` of the pull request it broke (on the plan's items, and in the pull request's findings document).
 2. Read it with `merget_batch`: its rows, the prompt, and the fixes already submitted, each with its diff.
@@ -175,7 +180,8 @@ to the pull request's branch sets a submitted fix aside.
 
 A batch's row says whether it takes a fix in `amendable`. `null` means the
 repository takes no fix submitted to Merget: it is in advisory mode, or its
-**Accept fixes submitted to Merget** setting (`batch.amendments`) is off.
+**Accept fixes and conflict resolutions submitted to Merget** setting
+(`batch.amendments`) is off.
 Otherwise it is `{eligible, reason, suggested_base, suggested_number}`: a
 batch is eligible once its CI has failed on its members' changes and it no
 longer runs, and `reason` says why one is not — `not_enforced` where GitHub
@@ -227,7 +233,7 @@ the fix may be a colleague's.
 | `code` | Means | Do |
 |--------|-------|----|
 | `amendment_unenforced` (409, `enforcement`) | GitHub does not require the Merget check on the target branch, or Merget has not verified that in the last ten minutes | push the fix to the branch |
-| `amendments_disabled` (409, `setting`), `amendment_not_applicable` (409, `mode`) | the repository's **Accept fixes submitted to Merget** setting is off, or it is in advisory mode | push the fix to the branch |
+| `amendments_disabled` (409, `setting`), `amendment_not_applicable` (409, `mode`) | the repository's **Accept fixes and conflict resolutions submitted to Merget** setting (`batch.amendments`) is off, or it is in advisory mode | push the fix to the branch |
 | `batch_not_amendable` (409, `reason`) | the batch takes no fix now: `live` (still in CI), `landed` (a fix now goes to the target branch), `not_red`, `inherited_failure` (the failure came from another batch), `unjudged` or `no_commit` | wait for its CI, or fix the batch the failure came from |
 | `amendment_exists` (409, `amendment_id`, `by`, `status`) | another fix stands for the pull request | show it; `withdraw_amendment` only on the user's yes, then submit again |
 | `base_commit_not_in_batch` (409, `accepted`, `batch_commit`), `base_commit_before_member` (409, `number`), `not_a_member` (409, `members`) | `base_commit` is not a commit the batch tested (`accepted` lists them), it comes before `number` joined the batch, or `number` is not in the batch | use a commit and a pull request of the batch |
@@ -380,6 +386,18 @@ When the queue moves under a standing resolution, Merget prepares the pull
 request again with it. If a conflict it was made for changed, it is
 dropped and the hand-off comes back with a new R0, naming it as `previous`.
 
+When the queue moves before a resolution is submitted, the hand-off offers
+a new R0, and `resolve` against the old one is refused with 409
+`stale_resolution_base`, which names the new `base_commit` and its `ref`.
+Merget stores nothing of a submission it refuses this way, so no
+`previous` names it.
+To carry the resolution over:
+
+1. Read the hand-off again (`merget_queue_status {repo, number}`): the new R0's `paths`, `merget_paths` and prompt may differ from the old one's, and the patch is checked against the new ones.
+2. Fetch `ref` and switch to the new `base_commit`, as the new prompt says.
+3. Apply the earlier patch, the file the prompt's line wrote, with `git apply --3way`, and resolve what remains in the files `paths` now lists; run the checks.
+4. Write the patch again, confirm with the user again, and submit it against the new `base_commit`.
+
 ### How a resolution shows
 
 - **Where it stands**: the plan's `resolutions`, and `queue.resolution` from `merget_queue_status {repo, number}` and `merget_pr_findings`, serve a resolution as a fix is served — `id`, `number`, `base_commit` (R0), `head_sha`, `paths` (what the patch changes), `by`, `via` (`person` or `agent`), `reason`, `status`, `refusal`, `run_id`, `retest_batch_id`, `settled_commit`, … — with `kind: "resolution"`, `batch_id` and `batch` null, and `conflict_paths`, the conflicts it resolves. `merget_queue_status`'s text says "A merge-time resolution by `<by>` is `<where it stands>` (`<first 8 of its id>`)."
@@ -411,7 +429,7 @@ it was refused or dropped.
 | `amendments_disabled` (409, `setting`), `amendment_not_applicable` (409, `mode`) | the repository's `batch.amendments` setting is off, or it is in advisory mode | resolve the conflicts on the branch |
 | `amendment_unenforced` (409, `enforcement`) | GitHub does not require the Merget check on the target branch, or Merget has not verified that in the last ten minutes | resolve on the branch, or a GitHub admin requires the check in the branch's protection |
 | `not_handed_off` (409, `pr`, `reason`) | the hand-off offers no resolution now: `reason` is the offer's ([above](#the-offer-handoffresolve)), or `no_handoff` when nothing of the hand-off is the person's to resolve | read the hand-off again; resolve on the branch |
-| `stale_resolution_base` (409, `base_commit`, `ref`) | the queue moved: the hand-off now offers another R0 | fetch the new commit from `ref`, carry the resolution over, confirm again and submit against it |
+| `stale_resolution_base` (409, `base_commit`, `ref`) | the queue moved: the hand-off now offers another R0 | read the hand-off again, then carry the resolution over to the new commit ([above](#resolve)): `git apply --3way` of the earlier patch, resolve what remains, write the patch again, confirm again and submit |
 | `unresolved_conflict` (400, `path`) | the patch leaves `path` unresolved, as above | resolve every conflict marker in it and write the patch again |
 | `amendment_exists` (409, `amendment_id`, `by`, `status`) | a resolution already stands for the pull request | show it; `withdraw_amendment` only on the user's yes, then submit again |
 | `pr_not_open`, `fork_head` (409, `pr`) | the pull request is closed or merged, or its branch lives in a fork | nothing to resolve there; a fork's conflicts are resolved on its branch |

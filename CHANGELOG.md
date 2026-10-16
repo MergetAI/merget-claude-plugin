@@ -64,13 +64,19 @@ it does not teach resolving for merge time.
   side (`left_out`); one resolution per pull request beside at most one
   fix; and every refusal, among them the three a fix never gets:
   `not_handed_off`, `stale_resolution_base` and `unresolved_conflict`.
+  After `stale_resolution_base`, which keeps nothing, it carries the
+  resolution over to the new R0: read the hand-off again (its files and
+  prompt may differ), apply the earlier patch with `git apply --3way`,
+  resolve what remains and submit again.
 - `merget-operate`, new: When conflicts need the user — read the hand-off
   and Merget's prompt with `merget_queue_status`, offer both ways with the
   branch first, resolve on R0 fetched by its ref, write the patch with the
   prompt's `git diff` line, confirm, `resolve`, and follow it to where it
   lands. The skill confirms with the user before `resolve`, which is
   recorded under their name, and its refusals table gains the three new
-  codes.
+  codes. When a batch fails, a member that carries a resolution
+  (`member_commits[].person_resolution`) is named before a push to its
+  branch, which sets the resolution aside too.
 - `merget-operate`'s description names resolving a pull request's
   conflicts for merge time. To stay within the 1,024 characters a skill's
   description may have, it no longer calls repository settings a JSON
@@ -87,7 +93,10 @@ it does not teach resolving for merge time.
   and `queue_break`, which Merget served already and the table left out.
 - The policy reference says `batch.amendments` also governs resolutions
   submitted for merge time, and `merget_batch`'s reference that its
-  `amendments` never list one.
+  `amendments` never list one. That release labels the setting **Accept
+  fixes and conflict resolutions submitted to Merget** in the dashboard
+  (it was **Accept fixes submitted to Merget**), and the queue reference
+  names it so.
 - README: `merget:queue.write` also submits resolutions of pull requests'
   conflicts for merge time, which Merget lands with the pull request; what
   agents can do, and `merget-operate`'s line, say the same.
