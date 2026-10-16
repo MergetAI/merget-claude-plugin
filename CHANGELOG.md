@@ -76,9 +76,15 @@ it does not teach resolving for merge time.
   description may have, it no longer calls repository settings a JSON
   merge patch checked against `policy_schema`, which the skill still
   teaches.
-- `merget-pr` hands conflicts offered for merge time to `merget-operate`,
-  as it hands a failed batch, and its vocabulary names the queue block's
-  `handoff`.
+- `merget-pr` reads a `blocked` or `waiting` pull request's queue block in
+  queue and autonomous mode, and hands conflicts offered for merge time, or
+  a resolution of them that stands, to `merget-operate`, as it hands a
+  failed batch. Its vocabulary names the queue block's `handoff`, and the
+  skill and its interpretation reference say that a push to the branch sets
+  a standing resolution aside: the author hears that before being told to
+  merge the target and push. The findings schema's `queue` table gains
+  `handoff` and `resolution`, and `sequence_ready`, `held`, `verification`
+  and `queue_break`, which Merget served already and the table left out.
 - The policy reference says `batch.amendments` also governs resolutions
   submitted for merge time, and `merget_batch`'s reference that its
   `amendments` never list one.

@@ -92,10 +92,16 @@ served by `api_version: "2026-09"`.
 | `merge_eligibility` | `eligible` \| `held` \| `unknown` \| … |
 | `blockers` | `[string]` reasons the PR cannot merge right now |
 | `ahead` | PR numbers ranked before this one |
+| `sequence_ready` | `true` for a link of the certified chain from a ready head: once the PRs in `ahead` merge in order, it lands as certified, with no new preparation. Never "may merge now": `waiting` stays `waiting` |
+| `held` | present when the plan ordered the PR behind every PR that is not held: `{reason, since, by, detail, waited_secs}`, `reason` one of `needs_you` (conflicts handed to the author), `skipped_by_user`, `skipped_after_wait`, `held_by_user` (`by` held it back, `detail` is their note) or `awaiting_approval` (a head from a fork, an unrecorded repository or a bot that no maintainer approved). Never a verdict input: what stands in the PR's way is in `blockers` |
+| `handoff` | what the current run leaves to the author; null until a run is current and settled, and while a resolution submitted to Merget is being checked (`resolution.status` `certifying`): `status` (`{t}`: `needs_you`; `waiting_on` with `prs` while all of it waits on PRs ahead; `merget_retry` when nothing is the author's; `none`), `items` (each conflicted file with its `path`, `kind`, what it is with in `with` (`{trunk, prs}`) and what to do in `action`, …), `handled_count` (the conflicts Merget resolved itself), …; and `resolve`, the offer to resolve the conflicts for merge time where the repository takes resolutions, which the `merget-operate` skill reads (its queue reference lists the offer's fields) |
+| `verification` | who verified the fix Merget prepared, as the check summary's Verification line says it: Merget's build, the repository's CI, or nobody, and why; absent when the run's evidence does not say |
 | `relationships` | `[{other, kinds}]` PRs this one interacts with and how |
 | `predicted_base` | the target sha Merget expects the PR to meet when its turn comes |
 | `next_pr` | the PR ranked right after, when any |
 | `enforcement` | `{status, reasons, target_branch, mode, app_id, checked_at}`: whether GitHub's merge queue enforces Merget on the target (`enforced`, `not_enforced`, `unknown`, `not_applicable`) |
+| `queue_break` | present while a batch carrying the PR failed CI because of it: `{batch_id, commit_sha, checks, absent_on_base, run_url, prompt}`, `checks` the failing checks (those in `absent_on_base` did not run on the base, the others pass there) and `prompt.text` Merget's prompt to fix it. A failed batch is the `merget-operate` skill's |
+| `resolution` | present while a resolution of the PR's conflicts submitted to Merget for merge time stands (`status` `proposed`, `certifying`, `accepted` or `retest_failed`), served as a fix is (`id`, `base_commit`, `paths`, `by`, `via`, `reason`, `status`, `refusal`, …) with `kind: "resolution"` and `conflict_paths`, the conflicts it resolves. A push to the branch sets it aside. It is the `merget-operate` skill's |
 
 Merget's dashboard shows these states in words, and its docs explain them
 on the `states` page (queue states, readiness labels, and protection

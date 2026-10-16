@@ -67,6 +67,26 @@ its `message` says what with. Match it and say:
 "resolve the merge conflict" whatever it is with; for one only with pull
 requests ahead, that waits until they merge.
 
+In `queue` or `autonomous` mode the queue block's hand-off
+(`queue.handoff`) names the same conflicts, each with what it is with, and
+two of its fields change what to say:
+
+- `queue.handoff.resolve`, the offer to resolve them for merge time. When
+  its `eligible` is true, say the sentence above, and that there is another
+  way, which leaves the branch as it is: resolving the conflicts on R0, the
+  commit the queue lands for the pull request, and handing the resolution
+  to Merget, which lands it with the pull request. Conflicts only with pull
+  requests ahead can be settled that way now, without waiting for them to
+  merge. When it is false, its `reason` says why, and the branch stays the
+  way, unless a resolution already stands (below). Resolving for merge time,
+  and what each reason means, are the `merget-operate` skill's.
+- `queue.resolution`, a resolution submitted to Merget that stands: any push
+  to the pull request's branch, merging the target into it included, sets
+  it aside. Never tell the author to merge the target and push without
+  saying so; push only if the user chooses that over the standing
+  resolution. Where it stands, and withdrawing it, are the
+  `merget-operate` skill's.
+
 ## What to do with each class
 
 - **blocking** — the thing to fix before merging. `interpretation.next_steps` already carries a line per blocking finding with `file:line`, its `kind` and its fingerprint. A Layer-2 one is an interaction Merget minted precise; a review one (`scope: review`) is this pull request's own break, blocking because the repository sets `review.l1` to `blocking`. For the *why*, use the `merget-graph` skill: `merget_graph_finding` with the `fingerprint` returns the finding with a dependence slice on the run's head.
@@ -125,7 +145,8 @@ comparison.
 - "Layer 2 blocks" or "critical interference" for an `advisory` finding → "advisory interaction" (a Layer-2 finding blocks only as `class: blocking`).
 - "no findings" when `verdict.status` is `pending`, `failed` or `superseded` → say which state it is.
 - "clean", "nothing to do" or "only advisory findings" when `verdict.status` is `conflicts` → say what each conflict is with.
-- "git cannot merge this pull request" or "resolve it on the branch" for a conflict only with pull requests ahead → "nothing to do until #1 merges".
+- "git cannot merge this pull request" or "resolve it on the branch" for a conflict only with pull requests ahead → "nothing to do until #1 merges" (or, where an eligible `queue.handoff.resolve` offers it, resolve it for merge time now).
+- "merge `main` into the branch and push" alone while `queue.resolution` stands → say that the push sets the resolution submitted to Merget aside.
 - "nothing to review", "no findings" or "0 warnings and 0 advisory findings" alone when `verdict.review_count` is present → name the review findings.
 - An `inherited` break as this pull request's to fix, or in its counts → "#7's, reported on #7's review".
 - "no callers" from a graph tool with syntactic provenance → "no callers found (syntactic)".
