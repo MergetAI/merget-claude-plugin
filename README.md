@@ -24,7 +24,7 @@ It never acts as an organization owner, even when you are the owner: in
 every organization its role is member. These stay with a person signed in
 to Merget's dashboard:
 
-- **The owner's steps**: connecting GitHub (installing Merget's GitHub App, connecting or releasing an installation), pausing and resuming merges, renaming the organization and its monthly LLM budget, adding and removing members, organization-wide validation secrets, and **Turn off strict**. No agent makes anyone an owner or is made one.
+- **The owner's steps**: connecting GitHub (installing Merget's GitHub App, connecting or releasing an installation), pausing and resuming merges, renaming the organization, changing its plan and spending cap, adding and removing members, organization-wide validation secrets, and **Turn off strict**. No agent makes anyone an owner or is made one.
 - **Deleting** an organization or an account.
 - **Every control over what agents may do**: the organization's agent switch and permission cap, each repository's agent access, and each agent's own permissions.
 - **The browser steps**: signing up, signing in and approving the agent, installing Merget's GitHub App.

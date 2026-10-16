@@ -38,7 +38,7 @@ GitHub live (`merget_repo_settings_get`, `merget_repo_update`,
 
 `merget_status` is described in the `merget-setup` skill. No tool takes an
 organization owner's step — connecting GitHub, pausing and resuming merges,
-the organization's name, budget and members, organization-wide secrets,
+the organization's name, plan, spending cap and members, organization-wide secrets,
 turning strict protection off: an agent never acts as an owner (SKILL.md,
 "Human-only").
 
@@ -89,7 +89,7 @@ Needs maintain or admin on the repository in GitHub (live). Answers the reposito
 | `limit` | 1–100 (50) | |
 | `cursor` | string | |
 
-Answer: `{items, next_cursor, totals}`; each item has `full_name`, `mode`, `open_pr_count`, `next_pr`, `queue_readiness`, `current_activity`, `attention_count`, `paused`, `freshness`.
+Answer: `{items, next_cursor, totals}`; each item has `full_name`, `mode`, `open_pr_count`, `next_pr`, `queue_readiness`, `current_activity`, `attention_count`, `paused`, `freshness`, `batch_summary` (what its batches in flight are doing) and `billing_hold` (while the organization is paused for credits, [queue.md](queue.md#reading-the-plan-first)).
 
 ## `merget_queue_get` — `merget:queue.read`
 
@@ -167,7 +167,7 @@ Answer: `{items, next_cursor}`, newest first; each item has `id`, `full_name`, `
 | `run` | uuid | **required** |
 | `include_report` | boolean | also the run's full report JSON |
 
-Answer: `{run, full_name, pr_number, findings, block_reason, …}` — status, outcome, the pull request, findings, LLM usage, the resolvers' tool calls, why it was blocked, the CI wait and the conflicts. `run.policy_snapshot` is the customer policy the run used (Merget-managed values are never shown).
+Answer: `{run, full_name, pr_number, findings, block_reason, …}` — status, outcome, the pull request, findings, the run's credits (`receipt`: `{credits, events, pr_receipt}`, `pr_receipt` the dashboard page of the pull request's receipt, which `merget_pr_receipt` serves), the resolvers' tool calls, why it was blocked, the CI wait and the conflicts. `run.policy_snapshot` is the customer policy the run used (Merget-managed values are never shown).
 
 ## `merget_analytics` — `merget:org.read`
 
@@ -201,7 +201,7 @@ Rates come with their denominators, and `observed_from` says where the data star
 | `org` | slug | |
 | `include_members` | boolean | also the members, as Merget's account service lists them |
 
-Answer: `{org: {display_name, agent_access, agent_scopes, llm_budget_usd, llm_spend_month_usd, llm_budget_month, llm_budget_exhausted, …}, members? | members_error?}`. `display_name` is what to call the organization (null: its slug). `agent_scopes` null = every permission. `members` is `{org, seats, members: [{user, username, display_name, role, added_at}]}`, each member's own role in the organization; `members_error` (the account service's refusal, `{code, message}`; `agent_relay_unavailable` or `agent_relay_refused` when Merget could not ask it for this agent) replaces it when that service could not answer, and the settings still come back. Nothing here is changed by a tool: the name, the LLM budget and the members are an owner's, in the dashboard, and the agent switch and cap are the user's.
+Answer: `{org: {display_name, agent_access, agent_scopes, plan, credit_cap, billing, …}, members? | members_error?}`. `display_name` is what to call the organization (null: its slug). `agent_scopes` null = every permission. `plan` is `free`, `team` or `enterprise`, and `billing` this period's standing in credits, `{status, mode, period, used, included, cap, paused_reason}`: `status` `ok`, `warning` or `capped`; `mode` `live`, or `shadow`, a preview that charges nothing; `paused_reason` (`credit_cap`, `allowance_exhausted`) while work is paused for credits. Credits are the only unit: no model, token or currency figure is served. `members` is `{org, seats, members: [{user, username, display_name, role, added_at}]}`, each member's own role in the organization; `members_error` (the account service's refusal, `{code, message}`; `agent_relay_unavailable` or `agent_relay_refused` when Merget could not ask it for this agent) replaces it when that service could not answer, and the settings still come back. Nothing here is changed by a tool: the name, the plan and the spending cap (Settings › Billing), and the members are an owner's, in the dashboard, and the agent switch and cap are the user's.
 
 ## `merget_installation_sync` — `merget:repos.write`
 

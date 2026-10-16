@@ -32,7 +32,8 @@ confidence is withheld: it is in no list and no count.
 | `advisory` | `advisory`, `blocking_count == 0`, no `review_count` | "Nothing blocking; N warning(s) and M advisory finding(s) to review." |
 | `advisory` | `queue`/`autonomous` | "Not blocked; N warning(s) and M advisory finding(s) remain." |
 | `blocked` | `queue`/`autonomous` | "**Blocked** by N precise finding(s); it will not land through the queue until they are fixed." |
-| `waiting` | `queue`/`autonomous` | "Not blocked by findings; waiting on `queue.blockers` (…)" — quote the blockers verbatim |
+| `blocked` | `advisory` | "**Blocked** by N precise finding(s): they break the merge into `<target>` as it is, and Merget's check fails. Merget changes no branch in advisory mode." |
+| `waiting` | `queue`/`autonomous` | "Not blocked by findings; waiting on `queue.blockers` (…)" — quote the blockers verbatim, or `queue.wait.sentence` when `blockers` is empty |
 | `conflicts` (once Merget serves it) | `advisory` | "Nothing is enforced on this repository, but it is not clean: Merget found textual conflicts." Then one sentence per conflict finding by what it is with ([Conflicts](#conflicts)), or "see `<run.details_url>`" when the document lists none; then the findings, as the `advisory` rows above put them. Never "clean", and never "git cannot merge it" for a conflict only with pull requests ahead. |
 | `pending` | any | "No completed run for the current head yet." If `run` is present and `stale`: "the last run analysed `<run.head_sha>`; its findings are provisional." |
 | `superseded` | any | "The head moved after the last run; a newer run is in progress. Re-read when it finishes." |
@@ -119,7 +120,7 @@ comparison.
 
 ## Worked examples
 
-**Advisory repository, one precise L1, one L2, one shadowed L1**
+**Advisory repository, one precise L1, one L2, one shadowed L1** (`verdict.status: advisory`)
 
 > Merget analysed head `9c1f2e4a` (current). The repository is in advisory mode, so nothing is enforced, but this **would block in queue mode**: one precise Layer-1 finding — `src/sds.c:430` "call to `sdscatlen` resolves to a definition removed on main". One advisory interaction: `src/sds.c:412` data flow between "Batch sds writes" (this PR) and "Bound write() by the caller's buffer" (main) — worth a look at the meeting point, not a gate. One finding in `src/quality.c` is shadowed by the merge conflict in that file; resolve the conflict first and re-read.
 
@@ -141,7 +142,7 @@ comparison.
 
 ## Wording to avoid
 
-- "blocked" for an advisory repository → "would block in queue mode".
+- "blocked" for an advisory repository → "would block in queue mode" (unless `verdict.status` is `blocked`: a blocking finding breaks the merge into the target as it is).
 - "Layer 2 blocks" or "critical interference" for an `advisory` finding → "advisory interaction" (a Layer-2 finding blocks only as `class: blocking`).
 - "no findings" when `verdict.status` is `pending`, `failed` or `superseded` → say which state it is.
 - "clean", "nothing to do" or "only advisory findings" when `verdict.status` is `conflicts` → say what each conflict is with.

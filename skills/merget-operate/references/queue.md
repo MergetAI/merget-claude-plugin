@@ -24,9 +24,12 @@ token holds.
 | `items[].landing` | present while something can land now: `{tier, batch_id?, position?, eta_secs?, bypassed_checks}`. `batch`: in the green batch the plan lands through. `sequence`: ready behind it, landing in a follow-up batch once that passes CI (about `eta_secs` later). `lane`: in the green passing lane. `held`: held back by a person. `position` is the 1-based place in the offer; `bypassed_checks` are failing checks the target does not require, never a gate. |
 | `items[].queue_break` | present while a batch in the queue failed CI because of this pull request: `{batch_id, commit_sha, checks, absent_on_base, run_url, prompt}` ([When a batch fails](#when-a-batch-fails)) |
 | `items[].handoff` | what the entry's current run leaves to a person: `status` (`{t}`: `needs_you`, `waiting_on` with `prs`, `merget_retry`, `none`), `items` (the files), …; with `resolve`, the offer to resolve its conflicts for merge time, where the repository takes resolutions ([When conflicts need the user](#when-conflicts-need-the-user)) |
+| `items[].wait` | what the entry waits for, by cause, in one sentence: `{code, sentence, batch_id?, failing_checks?, green_ci?}` — the batch it rides being certified, under CI, green or landing, no batch slot for it, its re-validation, its preparation, its turn, or a requirement GitHub enforces; absent where its state says it in words of its own |
 | `resolutions` | every resolution submitted to Merget for merge time that stands in the repository (`proposed`, `certifying`, `accepted`, `retest_failed`), newest first; `[]` when none |
 | `paused` | `{at, by, reason, stops_merges}` or null |
+| `billing_hold` | while the organization has used its monthly credits: `{reason, plan, period, since, settings_path}` (`reason` `credit_cap` or `allowance_exhausted`), else null. Merget starts no work on the queue — `retry` and `skip_blocked` are refused 402 `credits_exhausted` — and landings continue; lifting it is an owner's, under Settings › Billing |
 | `current_batch`, `inflight_batches`, `batches`, `passing_lane` | the batches in CI and the live passing lane |
+| `batch_summary` | what the batches in flight are doing: `{state, batches, members, green, sentence, …}`, `state` one of `preparing`, `testing`, `awaiting_merge`, `land_blocked`, `green`, `merging`, `merging_anyway`, `failed`; null while no batch is live |
 | `batches[]` | each batch: `id`, `state`, `members`, `member_commits` (each member's `{number, head_sha, commit_sha}`, where it entered the batch, with `person_resolution` when it carries a resolution submitted for merge time, [below](#how-a-resolution-shows)), `commit_sha`, `ci`, `breakage`, `amendments` (the fixes submitted to Merget for it or carried by one of its pull requests, without their diffs) and `amendable` — the row `merget_batch` and the `batches` view serve too ([When a batch fails](#when-a-batch-fails)) |
 | `amendments_enabled` | whether the repository takes fixes and resolutions submitted to Merget: queue or autonomous mode, with its **Accept fixes and conflict resolutions submitted to Merget** setting (`batch.amendments`) on |
 | `land_authorization`, `lane_authorization` | the standing land request (or the last settled within 24 hours): `{id, by, at, state, scope, override, members, landed, remaining, void_reason, finished_at, expires_at}`, or null |
@@ -44,10 +47,10 @@ the ones whose CI failed a required check).
 
 | `action` | Arguments | Modes | Answer | Refusals |
 |----------|-----------|-------|--------|----------|
-| `retry` | `number` | any | `{requested: true, job_id}` — one pull request's analysis and preparation run again | 404 `entry_not_found` (not in the current plan), 409 `merge_in_flight` |
+| `retry` | `number` | any | `{requested: true, job_id}` — one pull request's analysis and preparation run again | 404 `entry_not_found` (not in the current plan), 409 `merge_in_flight`, 402 `credits_exhausted` (the organization has used its monthly credits: an owner's, under Settings › Billing) |
 | `hold` | `number`, `reason` (kept as the note) | queue, autonomous | `{held: true, number, head_sha, replanning, behind}` — `behind`: entries prepared again because their base changes; `{held: false, already: true}` when the user's hold already stands | 409 `hold_not_applicable`, `merge_in_flight`, `pr_not_open`; 404 `entry_not_found` |
 | `release` | `number` | queue, autonomous | `{released: true, number, replanning}` | 409 `not_held_by_user` (a hold Merget took — the author answers it with a push — or none); 404 `entry_not_found` |
-| `skip_blocked` | | queue, autonomous | `{held, landable, left_alone, left_alone_detail, replanning}`; empty `held` with `replanning: false`: nothing needed moving | 409 `skip_not_applicable`, `no_plan`, `nothing_ready` |
+| `skip_blocked` | | queue, autonomous | `{held, landable, left_alone, left_alone_detail, replanning}`; empty `held` with `replanning: false`: nothing needed moving | 409 `skip_not_applicable`, `no_plan`, `nothing_ready`; 402 `credits_exhausted` |
 | `land` | below | queue, autonomous | `{requested, authorization_id, members, lands_now, lands_later, recut, batch_id, job_id}` | below |
 | `cancel_land` | `kind` | any | `{cancelled: true, in_flight}`; the request is voided as cancelled by the user | 404 `land_not_requested` (none active, finished, or already voided) |
 | `dismiss` | `number`, `fingerprint`, `reason` (required) | any | `{dismissed: true, fingerprint, by, reason, changed, rerun: {requested, job_id}}`; `changed: false` when the same dismissal already stood | 400 `invalid_fingerprint`, `invalid_reason`; 404 `pr_not_found`, `finding_not_found` (no run of the pull request recorded that fingerprint; a conflict is never dismissed); 403 `reserved_actor` |
@@ -274,7 +277,7 @@ markers in the rest, labelled
 `<<<<<<< #<number> (this pull request)`, `||||||| merge base` and
 `>>>>>>> queue base (<target> and the pull requests ahead)`. Merget
 publishes it at `refs/merget-queue/resolve/<number>` on GitHub: on no
-branch, so no CI runs on it.
+branch, so it is meant to start no CI.
 
 1. Read the offer: `merget_queue_status {repo, number}` (the `merget-pr` skill's tool) gives the hand-off and, when the offer is eligible, Merget's prompt whole in its text; `queue.handoff.resolve` is the offer.
 2. Offer the user both ways, the branch first, and say what each does.
