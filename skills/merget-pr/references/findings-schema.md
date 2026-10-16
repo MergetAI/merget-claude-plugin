@@ -114,6 +114,23 @@ dashboard's Docs.
 `{runs: [RunSummary]}`, newest first, 50 at most. `RunSummary` is
 `{id, status, head_sha, base_sha, prepared_head, started_at, finished_at, counts, details_url, check_run_url}`.
 
+## `merget_pr_receipt` / `…/pulls/:number/receipt`
+
+What a pull request cost in Merget credits (`merget:findings.read`,
+read-only; `repo` and `number`): every run Merget made for it, in order,
+each with its kind, cause, outcome and credits. Runs Merget failed or
+abandoned are listed free. Credits are the only unit: no model or token
+detail is served. The answer is `{repo, number, mode, totals, by_period,
+events}`; a number that is no pull request of the repository answers 404
+`pr_not_found`.
+
+| Field | Meaning |
+|-------|---------|
+| `mode` | `live`, or `shadow`: a preview that meters and charges nothing |
+| `totals` | `{credits, billable_credits, events, free_events, provisional}`: every run's credits (a free run counts 0), the billable runs' alone, how many runs and how many of them free; `provisional` while some row may still change |
+| `by_period` | `[{period, credits}]`: the billing periods (`YYYY-MM`) the credits fall in |
+| `events` | one per run, oldest first: `{occurred_at, run_id, kind, cause, outcome, credits, billable, free_reason, provisional, …}`. `kind`: `analysis`, `preparation`, `fix_attempt`, `landing`, or a share of the queue's work (`planning_share`, `landing_share`); `cause`: `first`, `your_push`, `merget_push`, `trunk_moved`, `queue_reordered`, `predecessor_changed`, `settings_changed`, `dismissal_changed`, `retry`, `revalidation`, …, or `unknown` when none was recorded; `free_reason` on a free run (`merget_failed`, `abandoned`, …); `provisional` on a fix attempt still waiting for its final rating |
+
 ## Errors
 
 Every error body is `{"code": "…", "error": "…", "message": "…"}` (`code`

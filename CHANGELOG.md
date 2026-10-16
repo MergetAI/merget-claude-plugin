@@ -30,16 +30,21 @@ The version header became `Merget-Api-Version` at the same time;
 
 ## 0.6.0 — 2026-10-16
 
-Needs the Merget release that serves resolve for merge time: the `resolve`
-action of `merget_queue_action`, the offer on a hand-off that needs the
-user (`handoff.resolve`), where the repository takes resolutions, the
-queue's `resolutions` and a batch member's `person_resolution`. The tools
-stay twenty-seven, fifteen of them operating ones. Against an earlier
-Merget, `merget_queue_action` refuses `resolve` (`invalid_argument`: the
-action is not one it knows) and no hand-off carries `resolve`, so the
-skills offer resolving on the branch alone; the rest works as 0.5.0
-teaches it. 0.5.0 still works against the new release; it does not teach
-resolving for merge time.
+Needs the Merget release that serves resolve for merge time and
+`merget_pr_receipt`: the `resolve` action of `merget_queue_action`, the
+offer on a hand-off that needs the user (`handoff.resolve`), where the
+repository takes resolutions, the queue's `resolutions` and a batch
+member's `person_resolution`, and the read tool `merget_pr_receipt`, with
+billing in credits. The tools are twenty-eight, thirteen that read and
+fifteen operating ones. Against an earlier Merget, `merget_pr_receipt` is
+not among its tools, `merget_queue_action` refuses `resolve`
+(`invalid_argument`: the action is not one it knows) and no hand-off
+carries `resolve`, so the skills offer resolving on the branch alone, and
+`merget_org_get` may answer the monthly LLM budget instead of credits;
+the rest works as 0.5.0 teaches it. 0.5.0 still works against the new
+release; it does not teach resolving for merge time or
+`merget_pr_receipt`, and it names the monthly LLM budget, which the new
+release no longer serves.
 
 - `merget_queue_action` `resolve` (`number`, `base_commit`, `patch`,
   `reason`): a resolution of a pull request's handed-off conflicts, made on
@@ -101,10 +106,50 @@ resolving for merge time.
   names it so.
 - README: `merget:queue.write` also submits resolutions of pull requests'
   conflicts for merge time, which Merget lands with the pull request; what
-  agents can do, and `merget-operate`'s line, say the same.
+  agents can do, and `merget-operate`'s line, say the same. `merget-pr`'s
+  line and what agents can do add what a pull request cost in credits
+  (`merget_pr_receipt`), and the owner's steps name the plan and the
+  spending cap where they named the monthly LLM budget.
 - Plugin description: resolving a pull request's conflicts on the commit
   the queue lands for it, and that the agent asks before it submits a
-  resolution. Still twenty-seven tools.
+  resolution. Also what a pull request cost in credits, and twenty-eight
+  tools: thirteen that read and fifteen that set up and operate Merget.
+- New tool `merget_pr_receipt` (`merget:findings.read`, read-only; `repo`,
+  `number`): what a pull request cost in Merget credits — every run Merget
+  made for it, in order, with its kind, cause, outcome and credits (a run
+  Merget failed or abandoned is listed free), the totals and the periods
+  they fall in, and `mode`, live billing or a preview that charges
+  nothing. Credits are the only unit: no model or token detail is served.
+  `merget-pr` teaches it in its tools table and safe set, its findings
+  schema reference gives the answer's fields, `merget-setup`'s
+  permissions table names credits under `merget:findings.read`, and
+  `.mcp.json` titles it "Merget: credits of a pull request".
+- That release bills in credits, and the skills say so. `merget_org_get`
+  answers the plan and `billing` (used, included, cap, status,
+  `paused_reason`) instead of the monthly LLM budget, and `merget_run_get`
+  a run's credits (`receipt`) instead of its LLM usage. The plan and the
+  spending cap are an owner's, under Settings › Billing, in
+  `merget-operate`'s human-only list. An organization that used its
+  monthly credits gets `merget_status`'s next step `credits_exhausted`
+  (`merget-setup`), `billing_hold` on its row and on its queues, and 402
+  `credits_exhausted` on `retry` and `skip_blocked` (`merget-operate`);
+  landings continue. `merget-operate`'s description says credits and its
+  billing where it said LLM spend and budget.
+- What a queued pull request waits for: the plan's `items[].wait` and
+  `batch_summary` in the queue reference, and the findings document's
+  `queue.wait` in `merget-pr`, which keeps a pull request `waiting`
+  whatever `blockers` holds.
+- `merget-pr`: a blocking finding that breaks the merge into the target
+  branch as it is reads `blocked` in `advisory` mode too, and Merget's
+  check fails, though Merget changes no branch there. Merget already
+  served this, and the skill said only "would block in queue mode",
+  which stays the sentence for an `advisory` verdict.
+- The queue reference's `not_qualifying` reason also names an agent
+  instruction file, a symbolic link and a submodule, and says that R0, on
+  no branch, is meant to start no CI. `merget-pr` adds to
+  `lifecycle: resolved` on a conflict that, where the run's held entry for
+  that path has rung person, a resolution submitted to Merget for merge
+  time resolved it.
 
 ## 0.5.0 — 2026-10-15
 

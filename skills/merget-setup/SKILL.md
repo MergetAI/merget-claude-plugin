@@ -25,7 +25,7 @@ This skill teaches the tools that exist today. **If a tool, argument or field is
 
 | Permission | Unlocks |
 |------------|---------|
-| `merget:findings.read` | findings, runs and briefs of pull requests (the `merget-pr` skill) |
+| `merget:findings.read` | findings, runs and briefs of pull requests, and what they cost in credits (the `merget-pr` skill) |
 | `merget:graph.read` | the graph tools (the `merget-graph` skill) |
 | `merget:queue.read` | the queues |
 | `merget:org.read` | `merget_status`, repositories and their settings, members, runs, analytics, docs |

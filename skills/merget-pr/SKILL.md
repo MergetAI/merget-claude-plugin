@@ -1,6 +1,6 @@
 ---
 name: merget-pr
-description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state) through the `merget` MCP server. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, review findings, textual conflicts (with the target or with a pull request ahead in the queue), a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
+description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state, credits) through the `merget` MCP server. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, review findings, textual conflicts (with the target or with a pull request ahead in the queue), a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands, or what a PR cost in Merget credits; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
 disable-model-invocation: false
 ---
 
@@ -24,10 +24,11 @@ Through the `merget` MCP server (installed by this plugin, `/mcp` shows it as `p
 |------|-----------|---------|
 | `merget_pr_findings` | `repo` (`owner/name`), `number`, `run?` (uuid), `include_report?` | the findings document (below), markdown for you plus `structuredContent` |
 | `merget_pr_runs` | `repo`, `number` | the PR's runs, newest first (id, status, head/base sha, counts) |
+| `merget_pr_receipt` | `repo`, `number` | what the PR cost in Merget credits: every run Merget made for it, in order, with kind, cause, outcome and credits; the totals and the periods they fall in; `mode`, live billing or a preview that charges nothing |
 | `merget_run_findings` | `repo`, `run` | the findings document of one run; `run.stale` says whether it is still the latest |
 | `merget_queue_status` | `repo`, `number?` | the repository's queue plan, or one PR's queue block |
 
-These four tools are read-only, as are the graph tools of the `merget-graph` skill. Acting on a queue or changing a repository's settings is the `merget-operate` skill's, with the user's say.
+These five tools are read-only, as are the graph tools of the `merget-graph` skill. Acting on a queue or changing a repository's settings is the `merget-operate` skill's, with the user's say.
 
 ## Start here
 
@@ -45,6 +46,8 @@ These four tools are read-only, as are the graph tools of the `merget-graph` ski
 6. When the user asks *why* a finding exists or what to change, switch to the `merget-graph` skill (`merget_graph_finding` with the finding's `fingerprint`) rather than speculating from the message alone.
 
 Re-read after the user pushes: fingerprints are stable across runs and rebases of the same problem, so `findings[].fingerprint` lets you say which findings are new, which persisted and which went away.
+
+When the user asks what a pull request cost, call `merget_pr_receipt`. Credits are the only unit Merget serves: never put a model, token or currency figure to it. A run Merget failed or abandoned is listed free, and in `mode: shadow` (a preview) nothing is charged.
 
 ## Vocabulary
 
@@ -90,7 +93,7 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 ## Safe set and stop-and-ask
 
-**Safe to run freely** (all read-only): `merget_pr_findings`, `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`.
+**Safe to run freely** (all read-only): `merget_pr_findings`, `merget_pr_runs`, `merget_pr_receipt`, `merget_run_findings`, `merget_queue_status`.
 
 **Stop and ask the user when**
 
@@ -105,7 +108,7 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 ## References
 
-- Every field of the findings document, the runs list and the queue block → [references/findings-schema.md](references/findings-schema.md)
+- Every field of the findings document, the runs list, the receipt and the queue block → [references/findings-schema.md](references/findings-schema.md)
 - The classification and verdict rules, with worked examples of what to say → [references/interpretation.md](references/interpretation.md)
 - Graph queries about a finding, a symbol or a commit → the `merget-graph` skill
 - Queue actions (retry, hold, land, resolving conflicts for merge time) and repository settings → the `merget-operate` skill
