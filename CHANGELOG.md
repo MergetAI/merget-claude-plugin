@@ -64,7 +64,8 @@ new release; it does not teach the view or the new count.
   request that carried neither and no merge since left it standing: the
   person's work may have cleared it. Those findings are counted apart, in
   `findings.resolved_with_submitted`, by kind
-  (`by_kind[].resolved_with_submitted`) and in each pull request's row
+  (`findings.by_kind[].resolved_with_submitted`) and in `rows[]`, the top
+  20 pull requests by blocking findings
   (`rows[].resolved_with_submitted_findings`, beside `resolved_findings`).
   `repaired` no longer counts a run whose only repair was a fix submitted to
   Merget once Merget published the fix to the branch, as it already left it
