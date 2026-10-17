@@ -41,7 +41,9 @@ Other views: `events` (what the queue did, newest first; `number` for one
 pull request's), `merged` (what landed), `relationships` (how the pull
 requests relate; nodes and edges page separately), `batches` (every batch
 the repository composed, newest first, settled and live; `failed: true` for
-the ones whose CI failed a required check).
+the ones whose CI failed a required check), `amendments` (what was
+submitted to Merget for one pull request, `number` required, in the queue
+or not: [How a resolution shows](#how-a-resolution-shows)).
 
 ## Actions
 
@@ -404,6 +406,7 @@ To carry the resolution over:
 ### How a resolution shows
 
 - **Where it stands**: the plan's `resolutions`, and `queue.resolution` from `merget_queue_status {repo, number}` and `merget_pr_findings`, serve a resolution as a fix is served — `id`, `number`, `base_commit` (R0), `head_sha`, `paths` (what the patch changes), `by`, `via` (`person` or `agent`), `reason`, `status`, `refusal`, `run_id`, `retest_batch_id`, `settled_commit`, … — with `kind: "resolution"`, `batch_id` and `batch` null, and `conflict_paths`, the conflicts it resolves. `merget_queue_status`'s text says "A merge-time resolution by `<by>` is `<where it stands>` (`<first 8 of its id>`)."
+- **Once it ends**: the plan's `resolutions` and `queue.resolution` serve a resolution only while it stands. `merget_queue_get {repo, view: "amendments", number}` lists every resolution and fix submitted to Merget for the pull request, newest first, in every state and whatever the pull request's state — in the queue, landed, closed or never queued — each as above without its diff, a page at a time (`limit` at most 100, `next_cursor`).
 - **On a batch row**: a member that carries one has it in `member_commits[].person_resolution`, `{id, by, source, paths, batch_id: null, left_out?}`: `paths` its conflict files and the others it changes, and `left_out` what it leaves out of either side, in words — at most three items joined by `; `, then `and N more`: a file kept as one side had it without the other's change, lines a side added that the resolution lacks, or a modify/delete decision. `left_out` is absent when it leaves nothing out. A batch row's `amendments` lists fixes only.
 - **On the pull request**: Merget keeps a comment saying who resolved what, where the resolution stands, the reason and the diff.
 
