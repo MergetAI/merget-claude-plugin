@@ -54,8 +54,10 @@ the view or the new count.
   is served as the plan's `resolutions` and a batch row's `amendments` serve
   one, without `relation` or its diff; `items` is `[]` when nothing was
   submitted. The plan's `resolutions` and a pull request's
-  `queue.resolution` serve a resolution only while it stands, and no batch
-  lists one, so this is where a resolution is read once it has ended.
+  `queue.resolution` serve a resolution only while it stands, and a batch
+  row's `amendments` lists fixes only (a batch that carried a resolution
+  names it in `member_commits[].person_resolution`, without its status), so
+  this is where a resolution is read, with how it ended, once it has ended.
   `merget-operate` names the view in its tools table and under The merge
   queue, and follows a resolution there once the pull request lands or
   leaves the queue; its tools reference gives the arguments and the answer
