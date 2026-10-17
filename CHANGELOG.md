@@ -36,11 +36,15 @@ pull request whatever its state (the `amendments` view of
 findings resolved with fixes and resolutions submitted to Merget counted
 apart from those Merget resolved (`resolved_with_submitted`). The tools are
 still twenty-eight. Against an earlier Merget, `merget_queue_get` refuses
-the view (`invalid_argument`: the view is not one it knows), and the
+the view (`invalid_argument`: the view is not one it knows); the
 `outcomes` report has no `resolved_with_submitted`: its `resolved` counts
-those findings as Merget's, so the skills call them resolved before landing
-there; the rest works as 0.6.0 teaches it. 0.6.0 still works against the
-new release; it does not teach the view or the new count.
+those findings as Merget's (so `merget-operate` calls them resolved before
+landing there), and its `repaired` counts a run whose only repair was a fix
+submitted to Merget once Merget published the fix to the branch; and a
+hand-off's `handled_count` counts the conflicts a person's resolution
+resolved once Merget published it to the branch. The rest works as 0.6.0
+teaches it. 0.6.0 still works against the new release; it does not teach
+the view or the new count.
 
 - `merget_queue_get` view `amendments` (`number` required): what was
   submitted to Merget for one pull request — the fixes for its failed
