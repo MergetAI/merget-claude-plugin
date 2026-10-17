@@ -28,6 +28,61 @@ names or values only:
 The version header became `Merget-Api-Version` at the same time;
 `Sema-Api-Version` comes beside it until a later Merget release drops it.
 
+## 0.6.1 — 2026-10-17
+
+Needs the Merget release that serves what was submitted to Merget for a
+pull request whatever its state (the `amendments` view of
+`merget_queue_get`), and, in `merget_analytics`'s `outcomes` report, the
+findings resolved with fixes and resolutions submitted to Merget counted
+apart from those Merget resolved (`resolved_with_submitted`). The tools are
+still twenty-eight. Against an earlier Merget, `merget_queue_get` refuses
+the view (`invalid_argument`: the view is not one it knows), and the
+`outcomes` report has no `resolved_with_submitted`: its `resolved` counts
+those findings as Merget's, so the skills call them resolved before landing
+there; the rest works as 0.6.0 teaches it. 0.6.0 still works against the
+new release; it does not teach the view or the new count.
+
+- `merget_queue_get` view `amendments` (`number` required): what was
+  submitted to Merget for one pull request — the fixes for its failed
+  batches and its resolutions for merge time — in every state, newest
+  first, whatever the pull request's state (in the queue, landed, closed or
+  never queued), as `{items, next_cursor}` (`limit` at most 100). Each item
+  is served as the plan's `resolutions` and a batch row's `amendments` serve
+  one, without `relation` or its diff; `items` is `[]` when nothing was
+  submitted. The plan's `resolutions` and a pull request's
+  `queue.resolution` serve a resolution only while it stands, and no batch
+  lists one, so this is where a resolution is read once it has ended.
+  `merget-operate` names the view in its tools table and under The merge
+  queue, and follows a resolution there once the pull request lands or
+  leaves the queue; its tools reference gives the arguments and the answer
+  (400 `invalid_argument` without `number`, 400 `invalid_cursor` for a
+  cursor of another pull request), and its queue reference lists the view
+  and, under How a resolution shows, where a resolution reads once it ends.
+- `merget_analytics` `outcomes`: `findings.resolved` no longer counts a
+  finding resolved on a merge that carried a fix or a resolution submitted
+  to Merget, unless Merget had resolved it on an earlier merge of the pull
+  request that carried neither and no merge since left it standing: the
+  person's work may have cleared it. Those findings are counted apart, in
+  `findings.resolved_with_submitted`, by kind
+  (`by_kind[].resolved_with_submitted`) and in each pull request's row
+  (`rows[].resolved_with_submitted_findings`, beside `resolved_findings`).
+  `repaired` no longer counts a run whose only repair was a fix submitted to
+  Merget once Merget published the fix to the branch, as it already left it
+  out while the fix was held. `merget-operate` and its tools reference
+  teach the counts, and to say those findings were resolved with fixes and
+  resolutions submitted to Merget, never by Merget.
+- `merget-pr`'s findings schema: a hand-off's `handled_count` never counts the conflicts a
+  resolution submitted to Merget for merge time resolved, even once Merget
+  published it to the branch, where an earlier Merget counted them. The
+  findings schema's `queue.resolution` row and the skill's references send
+  what was submitted for a pull request that left the queue to
+  `merget-operate`.
+- README: `merget:queue.read` also reads what was submitted to Merget for a
+  pull request, in the queue or not, and what agents can do says the same.
+- The skill descriptions and the plugin description are unchanged;
+  `merget-operate`'s stays at 1,019 of the 1,024 characters a description
+  may have.
+
 ## 0.6.0 — 2026-10-16
 
 Needs the Merget release that serves resolve for merge time and

@@ -96,10 +96,10 @@ Answer: `{items, next_cursor, totals}`; each item has `full_name`, `mode`, `open
 | Argument | Type | Meaning |
 |----------|------|---------|
 | `repo` | `owner/name` | **required** |
-| `view` | `plan` \| `relationships` \| `events` \| `merged` \| `batches` | default `plan` |
-| `number` | integer | `events`: one pull request's; `relationships`: put this pull request first (not with `group`) |
+| `view` | `plan` \| `relationships` \| `events` \| `merged` \| `batches` \| `amendments` | default `plan` |
+| `number` | integer | `events`: one pull request's; `relationships`: put this pull request first (not with `group`); `amendments`: the pull request, **required** |
 | `generation` | uuid | the plan generation a page is pinned to |
-| `limit` | 1–500 (50) | at most 100 for `plan`, `events`, `merged`; 500 for the nodes of `relationships`; 50 for `batches` (20 when omitted) |
+| `limit` | 1–500 (50) | at most 100 for `plan`, `events`, `merged` and `amendments`; 500 for the nodes of `relationships`; 50 for `batches` (20 when omitted) |
 | `cursor` | string | the next page (the nodes, for `relationships`) |
 | `edges_limit`, `edges_cursor` | integer (500), string | `relationships`: the edges' own paging — keep both cursors and send both, until `truncated` clears |
 | `group` | string | `relationships`: one landing group (not with `number`) |
@@ -110,6 +110,8 @@ Answer: `{items, next_cursor, totals}`; each item has `full_name`, `mode`, `open
 The plan view → [queue.md](queue.md). A newer plan answers 409 `stale_generation`: start again from the first page. Its items' `handoff.resolve` is the offer to resolve a pull request's conflicts for merge time, and its `resolutions` the resolutions submitted to Merget that stand → [queue.md](queue.md#when-conflicts-need-the-user).
 
 The `batches` view answers `{items, partitions, next_cursor}`: the root batches newest first, settled and live, back to the first the repository composed (`state` and `failed` choose them), and every batch a bisection made under them to isolate a failure's cause (`partitions`, oldest first), each a row as the plan's `batches[]`. 400 `invalid_state` lists the states allowed.
+
+The `amendments` view answers `{items, next_cursor}`: what was submitted to Merget for pull request `number` — the fixes for its failed batches and its resolutions for merge time — in every state, newest first, whatever the pull request's state (in the queue, landed, closed or never queued); `items` is `[]` when nothing was, a number Merget never saw included. Each item is served as the plan's `resolutions` and a batch row's `amendments` serve one: `id`, `number`, `base_commit`, `head_sha`, `paths`, `by`, `via` (`person` or `agent`), `reason`, `status`, `refusal`, `batch_id` and `batch` (null for a resolution), `run_id`, `settled_commit`, `superseded_by`, `created_at`, …, with `kind: "resolution"` and `conflict_paths` on a resolution; `status` reads as [queue.md](queue.md) gives it for a fix and for a resolution. No item carries `relation` or its diff: `merget_batch` serves a fix's with its batch, and Merget's comment on the pull request shows a resolution's. Without `number` the view is refused 400 `invalid_argument`; a cursor serves only the repository and pull request it came from (400 `invalid_cursor`).
 
 ## `merget_batch` — `merget:queue.read`
 
@@ -193,6 +195,8 @@ Answer: `{run, full_name, pr_number, findings, block_reason, …}` — status, o
 | `waiting` | open pull requests whose latest run is blocked |
 
 Rates come with their denominators, and `observed_from` says where the data starts.
+
+`outcomes` counts in `findings` what Merget detected, the findings resolved before landing included (`distinct_findings`), and among them `resolved`, those Merget resolved. A finding resolved on a merge that carried a fix submitted to Merget or a resolution submitted to Merget for merge time is never in `resolved`: the person's work may have cleared it, so it is counted apart, in `resolved_with_submitted` — unless Merget had resolved it on an earlier merge of the pull request that carried neither, and no merge since left it standing, when it stays Merget's. `by_kind[]` splits both by kind (`resolved`, `resolved_with_submitted`), and each pull request's row in `rows[]` (its newest finished run in the window) has `resolved_findings` and `resolved_with_submitted_findings`. Name them apart, as the dashboard does — "42 findings in 9 PRs · 12 resolved by Merget · 2 with fixes and resolutions submitted to Merget" — and never call them resolved by Merget. Likewise `repaired` (`prepared_repaired_runs`, `prepared_repaired_prs`) counts no run whose only repair was a fix submitted to Merget, held or since published to the branch. A Merget that serves no `resolved_with_submitted` counts those findings in `resolved` and `resolved_findings`: there, say "resolved before landing", not "by Merget".
 
 ## `merget_org_get` — `merget:org.read`
 
