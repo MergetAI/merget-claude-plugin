@@ -4,7 +4,7 @@ Connects Claude Code to Merget — the semantic merge queue — through the
 remote MCP server at `https://sema.merget.ai/mcp`, and adds four skills:
 
 - **merget-setup** — the first run: where your organization stands (`merget_status`), the page in Merget's dashboard where you connect GitHub, enabling a first repository and choosing its automation mode from what GitHub lets Merget do there.
-- **merget-operate** — Merget the way its dashboard runs it, short of an organization owner's steps: repository settings, the merge queue (retry, hold, merge what's ready, land), a batch whose CI failed and its fix, a pull request's conflicts resolved for merge time, dismissing a finding that is wrong, runs, analytics, a repository's validation secrets and the docs.
+- **merget-operate** — Merget the way its dashboard runs it, short of an organization owner's steps: repository settings, the merge queue (retry, hold, merge what's ready, land), the code the queued pull requests change and where they interfere, a batch whose CI failed and its fix, a pull request's conflicts resolved for merge time, dismissing a finding that is wrong, runs, analytics, a repository's validation secrets and the docs.
 - **merget-pr** — read and interpret a pull request's Merget findings, verdict, brief, queue position and enforcement state, and what it cost in credits (`merget_pr_findings`, `merget_pr_runs`, `merget_pr_receipt`, `merget_run_findings`, `merget_queue_status`).
 - **merget-graph** — typed queries over Merget's code property graphs of any commit: symbols, callers, callees, def-use, slices, graph diff, a finding's slice, a PR side's intent (`merget_graph_*`). Merget builds a commit's graph on first use, so the first call on a fresh commit may answer `graph_pending` and succeed on the retry.
 
@@ -14,7 +14,7 @@ The agent acts as you, never as more: within the permissions you grant it
 when you sign in, and with your own GitHub permission on each repository.
 With every permission it can:
 
-- read pull requests' findings, runs and briefs, what they cost in credits, their place in the queue, the fixes and resolutions submitted to Merget for them, and the code graph of any commit Merget has built;
+- read pull requests' findings, runs and briefs, what they cost in credits, their place in the queue, the fixes and resolutions submitted to Merget for them, the symbols the queued pull requests change and the evidence behind each pair that interferes, and the code graph of any commit Merget has built;
 - read your organization: its repositories and their settings, members, setup state, runs, analytics and GitHub installations;
 - change repositories: turn Merget on or off, choose the automation mode and target branch, change settings and manage a repository's validation secrets (with **Maintain** or **Admin** on the repository in GitHub);
 - check GitHub installations again, after you accept a permission or change the App's repositories;
@@ -229,7 +229,7 @@ to approve.
 |------------|----------------|
 | `merget:findings.read` | read pull-request and run findings, merge briefs and repository summaries, and what pull requests cost in credits |
 | `merget:graph.read` | use the graph tools on any commit Merget has built |
-| `merget:queue.read` | read queue position, enforcement and branch relationships, every repository's queue, and what was submitted to Merget for a pull request, in the queue or not |
+| `merget:queue.read` | read queue position, enforcement and branch relationships, every repository's queue, the queue's Code view (the symbols the queued pull requests change and the evidence behind each pair that interferes), and what was submitted to Merget for a pull request, in the queue or not |
 | `merget:org.read` | read repositories and their settings, members, runs, analytics, GitHub installations, setup state and the docs |
 | `merget:repos.write` | change repository settings, including turning Merget on or off and the automation mode, manage a repository's validation secrets, and check GitHub installations again |
 | `merget:queue.write` | hold, release, retry and merge pull requests in the merge queue, including merge anyway; dismiss findings; and submit fixes for failed batches and resolutions of pull requests' conflicts for merge time, which Merget lands with the pull request |
