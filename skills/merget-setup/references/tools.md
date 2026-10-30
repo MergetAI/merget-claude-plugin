@@ -1,8 +1,9 @@
 # Setup tools: arguments and answers
 
-Each tool below is `merget_<name>` on the `merget` MCP server
-(`mcp__plugin_merget_merget__merget_<name>` in Claude Code through this
-plugin). A success answers markdown for you in `content[0].text` and the
+Each tool below is `merget_<name>` on the `merget` MCP server. The tools
+carry the names Merget's MCP server gives them; your agent may show them
+under a prefix of its own. A success answers markdown for you in
+`content[0].text` and the
 document itself in `structuredContent`. A refusal is a result with
 `isError: true` and no `structuredContent`, whose text is
 `error <code> (HTTP <status>): <message>` followed by one `key: value` line
@@ -13,9 +14,9 @@ span: decode that JSON for the value, so `` org_name: `"Acme"` `` means the
 name Acme and `` org: `"u-7d9b0c3e"` `` the slug u-7d9b0c3e. A value that
 itself holds backticks gets a longer run of them as its delimiter; the JSON
 is everything between the two delimiters. The same body, as plain JSON, is
-in `_meta["merget.error"]` for a client that exposes it; Claude Code passes
-only the text to the model. The table of codes is in SKILL.md, "When a call
-is refused".
+in `_meta["merget.error"]` for a client that exposes it; many clients pass
+only the text to the model: read the details from its lines. The table of
+codes is in SKILL.md, "When a call is refused".
 
 `org` is an organization's slug (`^[A-Za-z0-9_.-]{1,100}$`): the identifier
 you pass, and the segment in Merget's URLs; name the organization to the

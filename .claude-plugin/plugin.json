@@ -2,8 +2,8 @@
   "author": {
     "name": "Merget AI"
   },
-  "description": "Semantic merge intelligence, and a merge queue your agent can run. Pull a pull request's Merget analysis into the session: findings and why each one blocks or advises, the merge verdict, queue position, what it cost in credits, and what a clean-looking text merge broke. Query Merget's code property graph of any commit — symbols, callers, callees, def-use chains, dependence slices, graph diffs and a finding's own slice — so an agent reasons over the cross-file consequences of a change instead of guessing from the diff. Set Merget up and operate it as its dashboard does: walk the user through connecting GitHub, enable repositories and choose their mode, change repository settings, drive the merge queue (retry, hold, merge what's ready, land), read the code the queued pull requests change and the evidence behind each pair that interferes, read a batch whose CI failed with the prompt to fix it, submit a fix that Merget lands with the pull request when the branch should stay untouched, resolve a pull request's conflicts on the commit the queue lands for it and submit the resolution, which Merget lands with the pull request too, dismiss a finding that is wrong, read runs and analytics, and manage repository validation secrets — within the permissions the user grants at sign-in, never as an organization owner (an owner's steps stay with the human, in Merget's dashboard), asking before anything merges, a finding is dismissed, or a fix or a resolution is submitted. Ships the merget-setup, merget-operate, merget-pr and merget-graph skills and connects to the Merget MCP server: twenty-nine tools, thirteen that read pull requests' analyses, their credits and commits' graphs and sixteen that set up and operate Merget.",
+  "description": "Merget is a semantic merge queue for GitHub. This plugin connects your coding agent to Merget's MCP server and adds four skills: set Merget up, operate its merge queue, read a pull request's findings and verdict, and query its code property graphs.",
   "homepage": "https://sema.merget.ai",
   "name": "merget",
-  "version": "0.7.0"
+  "version": "0.8.0"
 }

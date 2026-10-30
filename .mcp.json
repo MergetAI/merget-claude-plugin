@@ -2,40 +2,7 @@
   "mcpServers": {
     "merget": {
       "type": "http",
-      "url": "https://sema.merget.ai/mcp",
-      "_meta": {
-        "ideToolTitles": {
-          "merget_pr_findings": "Merget: pull request findings",
-          "merget_pr_runs": "Merget: runs of a pull request",
-          "merget_pr_receipt": "Merget: credits of a pull request",
-          "merget_run_findings": "Merget: findings of a run",
-          "merget_queue_status": "Merget: queue status",
-          "merget_graph_symbols": "Merget graph: symbols in a file",
-          "merget_graph_finding": "Merget graph: finding with its slice",
-          "merget_graph_slice": "Merget graph: dependence slice",
-          "merget_graph_callers": "Merget graph: callers",
-          "merget_graph_callees": "Merget graph: callees",
-          "merget_graph_def_use": "Merget graph: def-use chains",
-          "merget_graph_diff": "Merget graph: diff between two commits",
-          "merget_graph_intent": "Merget graph: intent of a pull request side",
-          "merget_status": "Merget: status and next step",
-          "merget_repos_list": "Merget: repositories of an organization",
-          "merget_repo_settings_get": "Merget: settings of a repository",
-          "merget_repo_update": "Merget: change a repository's settings",
-          "merget_queues_overview": "Merget: queues of an organization",
-          "merget_queue_get": "Merget: queue of a repository",
-          "merget_batch": "Merget: one batch",
-          "merget_queue_code": "Merget: code view of a queue",
-          "merget_queue_action": "Merget: act on a merge queue",
-          "merget_runs_list": "Merget: runs of an organization",
-          "merget_run_get": "Merget: one run",
-          "merget_analytics": "Merget: analytics of an organization",
-          "merget_org_get": "Merget: organization settings",
-          "merget_installation_sync": "Merget: re-check a GitHub installation",
-          "merget_secrets": "Merget: a repository's validation secrets",
-          "merget_docs": "Merget: documentation"
-        }
-      }
+      "url": "https://sema.merget.ai/mcp"
     }
   }
 }

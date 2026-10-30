@@ -1,7 +1,7 @@
 ---
 name: merget-graph
 description: Queries Merget's code property graphs of any commit in a repository where Merget is installed — symbols in a file, callers and callees, def-use chains, program dependence slices, the graph diff between two commits, a finding's slice, and a PR side's intent — through the `merget_graph_*` MCP tools. Use when the user asks what calls or is called by a function, where a variable is defined or used, what a change reaches or depends on, what will break if a PR merges, why a Merget finding exists, what a PR or its target branch actually changed at the symbol level, for a slice or dependence context around a line, or for callers/callees/def-use/slice/graph diff on a commit, branch, or `pr:N:head`/`pr:N:base`/`pr:N:merge` revision; also use to confirm a syntactic Merget finding before acting on it.
-disable-model-invocation: false
+compatibility: "Needs Merget's MCP server (merget, https://sema.merget.ai/mcp) connected and signed in."
 ---
 
 # Merget graph tools
@@ -12,7 +12,7 @@ This skill teaches the tools that exist today. **If a tool, argument or `rev` fo
 
 ## Tools
 
-All read-only, all on the `merget` MCP server (`mcp__plugin_merget_merget__<name>` in Claude Code through this plugin, `mcp__merget__<name>` when the server was added by hand as `merget`), all needing the `merget:graph.read` scope. Arguments and result shapes in [references/tools.md](references/tools.md).
+All read-only, all on the `merget` MCP server, all needing the `merget:graph.read` scope. The tools carry the names Merget's MCP server gives them (`merget_graph_slice`, …); your agent may show them under a prefix of its own; the `merget-setup` skill names each agent's. Arguments and result shapes in [references/tools.md](references/tools.md).
 
 | Tool | Asks | Key arguments |
 |------|------|---------------|
@@ -75,7 +75,7 @@ Cross-file call recall is **language-dependent** and low for some languages (sin
 | `symbol_not_found` (404) | the symbol, path or line does not exist on that rev; `suggestions` when the index has near misses (same short name elsewhere → prefix → edit distance ≤ 2 → substring) | pick a suggestion or use `merget_graph_symbols` to find the right locator |
 | `budget_exceeded` (422) | `max_tokens` too small for the minimal answer | raise `max_tokens` once |
 | `quota_exceeded` (429) | the organization's daily tool-call or tool-token quota; `retry_after_secs` to the next day | stop; tell the user |
-| `insufficient_scope` (403) | token lacks `merget:graph.read` | ask the user to turn it on for this agent in Merget (Settings › Agents) or to authorize again (`/mcp` → the Merget server → Clear authentication → Authenticate); never retry blindly |
+| `insufficient_scope` (403) | token lacks `merget:graph.read` | ask the user to turn it on for this agent in Merget (Settings › Agents) or to authorize again — the human signs this agent in again from their agent's MCP settings; the `merget-setup` skill lists each agent's steps; never retry blindly |
 | `agent_scope_disabled` (403) | the organization's owner does not let agents use `merget:graph.read` there | ask an owner (Settings › Agents) |
 | `agent_access_disabled` (403) | repository allows `findings` only, or agents are off | ask an owner (dashboard → Repositories → agent access) |
 | `repo_not_found` (404) | unknown repository / no installation / another organization | ask the user which organization was chosen at sign-in |

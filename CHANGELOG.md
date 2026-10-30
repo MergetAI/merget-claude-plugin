@@ -1,12 +1,16 @@
-# Changelog — the `merget` Claude Code plugin
+# Changelog — Merget's plugin for coding agents
 
-The plugin's version is `.claude-plugin/plugin.json` `version`, mirrored in
-the marketplace manifest (`.claude-plugin/marketplace.json`). Bump both
-together. A plugin release never changes what the server answers, only what
-the skills teach and which tools `.mcp.json` titles. To take a release back,
-release the content before it again under a new, higher version (0.4.1 with
-0.3.1's skills, say), so this list stays in order: Claude Code updates a
-copy whenever the version differs from the one it has.
+The plugin's version lives in `packaging/source.json`, and
+`node packaging/build.mjs` writes it into every manifest this repository
+ships: `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, the
+root `plugin.json`, `.antigravity-plugin/plugin.json` and `server.json`.
+`node packaging/build.mjs --check` fails when one of them, or this file's top
+heading, says something else. A plugin release never changes what the server
+answers, only what the skills teach and how the plugin is packaged. To take a
+release back, release the content before it again under a new, higher version
+(0.4.1 with 0.3.1's skills, say), so this list stays in order: a client that
+pins the version updates its copy whenever the version differs from the one
+it has.
 
 The API versions the shape of its documents, the findings document among
 them (`api_version`, also sent as the `Merget-Api-Version` response header):
@@ -27,6 +31,72 @@ names or values only:
 
 The version header became `Merget-Api-Version` at the same time;
 `Sema-Api-Version` comes beside it until a later Merget release drops it.
+
+## 0.8.0 — 2026-10-30
+
+One plugin for every coding agent. The repository is now
+`MergetAI/merget-plugin`; GitHub redirects the old name,
+`merget-claude-plugin`. The marketplace (`merget-queue`), the plugin id
+(`merget@merget-queue`), the server key (`merget`) and the four skill names
+are unchanged, so an installed copy updates in place. Needs no particular
+Merget release: the server is the one 0.7.0 connects to.
+
+- **Generated manifests.** `packaging/source.json` is the single source of
+  the plugin's name, version, description, addresses and keywords, and
+  `packaging/build.mjs` writes every manifest from it, each with only the
+  fields its reader's schema allows:
+  - `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` and
+    `.mcp.json` — Claude Code, and the clients that read the Claude plugin
+    format as is: Codex, Copilot CLI, VS Code, Devin and Factory Droid;
+  - the root `plugin.json` and `mcp.json` — Agent Plugins 1.0
+    (`type: "streamable-http"`), read by Codex, Cursor, VS Code, Copilot CLI
+    and Kiro;
+  - `.antigravity-plugin/plugin.json` — Google Antigravity, with
+    `displayName`, `logo` and `author`;
+  - `server.json` — the official MCP Registry, as `ai.merget/merget` with one
+    `streamable-http` remote.
+
+  The description is about 250 characters and names no tool count (0.7.0's
+  was 1,734 characters long); `displayName` is `Merget`; `assets/logo.svg` is
+  Merget's symbol.
+- **Dropped the tool-title block.** `.mcp.json` no longer carries
+  `_meta.ideToolTitles`: the server sends each tool's title itself, so IDEs
+  label the tools the same with or without it.
+- **Client-neutral skills.** The four skills no longer name one client. Tools
+  carry the server's names (`merget_status`), and whether an agent adds a
+  prefix of its own is the agent's affair; the sign-in passages say the human
+  signs the agent in again from their agent's MCP settings; "Claude Code
+  passes only the text" became "many clients pass only the text"; the
+  frontmatter lost `disable-model-invocation` and gained `compatibility`
+  (Merget's MCP server, connected and signed in); the descriptions are as
+  0.7.0 wrote them. The per-client steps — how the server is listed and its
+  tool prefix, signing in and signing in again, reload or restart, updating
+  and auto-update — moved into one file,
+  `skills/merget-setup/references/clients.md`: Claude Code, Codex, Copilot
+  CLI, VS Code, Cursor, Devin, Kiro, Antigravity and Gemini CLI, skills-only
+  installs (Replit among them), any other client (claude.ai, Claude Desktop
+  and the ChatGPT desktop app among them) and the dead ends. merget-setup's last step offers
+  automatic updates where the agent has them, with the Claude Code
+  `settings.json` procedure now in that file; the other three skills name
+  merget-setup instead of linking across skills.
+- **README and RELEASING.** The README covers every client with the same
+  commands Merget's setup prompt and dashboard use, and `RELEASING.md` says
+  how a version is cut and what is checked by hand. The "Merget's new tool
+  names" and "Upgrading from 0.2.0" sections are gone; the 0.4.0 and 0.3.0
+  entries below keep that history.
+- **CI.** `.github/workflows/validate.yml` runs `build.mjs --check`
+  (generated files current, CHANGELOG heading, skill frontmatter and links,
+  no client-specific tool prefix outside clients.md, no `sema` outside the
+  server's host and this file, and on a pull request the release rule: a
+  change to a file a client reads comes with a version bump), `build.mjs
+  --validate` against the schemas pinned in `packaging/schemas/` and ajv
+  over the same pairs, the Agent Skills reference validator, `claude plugin
+  validate --strict`, and an install from the checkout into a clean home in
+  Claude Code (asserting the four skills and exactly one `merget` server),
+  Copilot CLI and Codex CLI. `release.yml` tags `vX.Y.Z` and publishes a
+  GitHub release with a zip when a version without a tag lands on `main`;
+  `registry-publish.yml` publishes `server.json` to the MCP Registry on
+  request.
 
 ## 0.7.0 — 2026-10-21
 

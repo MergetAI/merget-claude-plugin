@@ -1,0 +1,162 @@
+# Every manifest is generated from packaging/source.json, and every client
+# reads a different one, so a release is only as good as these checks: the
+# generator's own rules, the pinned schemas (the generator's validator, then
+# ajv), the skills specification, Claude Code's validator, and an install from
+# a clean home in each CLI that installs a plugin from a local path.
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  manifests:
+    name: Manifests, skills and Claude Code validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The version-bump rule compares the pull request with its base.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # On a pull request, --base adds the release rule: a change to a file a
+      # client reads comes with a version bump, or no client that pins the
+      # version ever fetches it (RELEASING.md).
+      - name: Generated files, CHANGELOG, skills, wording and the version bump
+        run: |
+          set -e
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            node packaging/build.mjs --check --base "origin/$GITHUB_BASE_REF"
+          else
+            node packaging/build.mjs --check
+          fi
+
+      - name: Generated files against the pinned schemas
+        run: node packaging/build.mjs --validate
+
+      # The generator's validator covers the subset of JSON Schema these four
+      # schemas use today; ajv, the reference implementation, catches a
+      # refreshed schema reaching for a keyword that subset ignores. The pairs
+      # are the `validateWith` lists in build.mjs. The registry schema is
+      # draft-07 and carries an `example` keyword ajv's strict mode rejects.
+      - name: Generated files against the pinned schemas, with ajv
+        run: |
+          set -e
+          ajv() { npx -y -p ajv-cli@5 -p ajv-formats@3 ajv "$@"; }
+          ajv validate --spec=draft2020 -s packaging/schemas/agent-plugins-plugin.schema.json -d plugin.json
+          ajv validate --spec=draft2020 -s packaging/schemas/antigravity-plugin.schema.json -d plugin.json
+          ajv validate --spec=draft2020 -s packaging/schemas/agent-plugins-mcp.schema.json -d mcp.json
+          ajv validate --spec=draft2020 -s packaging/schemas/antigravity-plugin.schema.json -d .antigravity-plugin/plugin.json
+          ajv validate --spec=draft7 --strict=false -c ajv-formats -s packaging/schemas/mcp-registry-server.schema.json -d server.json
+
+      # skills-ref is the Agent Skills reference validator; one run per skill.
+      - name: Agent Skills reference validator
+        run: |
+          set -e
+          for skill in skills/*/; do
+            echo "== $skill"
+            npx -y skills-ref@0.1.5 validate "$skill"
+          done
+
+      - name: Claude Code plugin validator
+        run: |
+          npm i -g @anthropic-ai/claude-code
+          claude plugin validate --strict .
+
+  install-smoke:
+    name: Install into a clean Claude Code home
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Claude Code
+        run: npm i -g @anthropic-ai/claude-code
+
+      # A fresh HOME has no marketplaces, no settings and no sign-in, which is
+      # what a new user's machine looks like. `claude plugin install` from a
+      # shell needs no flag for a plugin like this one (`--yes` is only for
+      # plugins installed by running a command).
+      - name: Add the marketplace and install the plugin
+        run: |
+          set -e
+          export HOME="$(mktemp -d)"
+          echo "HOME=$HOME" >> "$GITHUB_ENV"
+          claude plugin marketplace add ./
+          claude plugin install merget@merget-queue
+          claude plugin list
+
+      - name: Assert the four skills and exactly one merget server
+        run: node packaging/smoke.mjs
+
+  install-smoke-copilot:
+    name: Install into a clean Copilot CLI home
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Copilot CLI
+        run: npm i -g @github/copilot
+
+      # Copilot CLI reads .claude-plugin/marketplace.json from a local
+      # marketplace root and loads a path-sourced plugin live from the
+      # checkout; neither command needs a sign-in. Its settings.json lives in
+      # COPILOT_HOME, so a fresh one is a new user's machine. The listing must
+      # carry the version source.json says, proof that it read our manifest.
+      - name: Add the marketplace, install the plugin and check the listing
+        run: |
+          set -e
+          export COPILOT_HOME="$(mktemp -d)"
+          copilot plugin marketplace add ./
+          copilot plugin install merget@merget-queue
+          copilot plugin list --json | node -e '
+            const version = require("./packaging/source.json").version;
+            const plugins = JSON.parse(require("fs").readFileSync(0, "utf8"));
+            const p = plugins.find((p) => p.name === "merget" && p.marketplace === "merget-queue");
+            if (!p || !p.enabled || p.version !== version) {
+              console.error(`merget@merget-queue ${version} is not installed and enabled: ${JSON.stringify(plugins)}`);
+              process.exit(1);
+            }
+            console.log(`merget@merget-queue ${p.version}, enabled, source ${p.source}`);
+          '
+
+  install-smoke-codex:
+    name: Install into a clean Codex home
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Codex CLI
+        run: npm i -g @openai/codex
+
+      # Codex CLI reads .claude-plugin/marketplace.json from a local
+      # marketplace root too, and copies the plugin into CODEX_HOME's cache at
+      # the version the manifest gives; no sign-in is needed for either step.
+      - name: Add the marketplace, install the plugin and check the listing
+        run: |
+          set -e
+          export CODEX_HOME="$(mktemp -d)"
+          codex plugin marketplace add ./
+          codex plugin add merget@merget-queue
+          codex plugin list --json | node -e '
+            const version = require("./packaging/source.json").version;
+            const { installed } = JSON.parse(require("fs").readFileSync(0, "utf8"));
+            const p = installed.find((p) => p.pluginId === "merget@merget-queue");
+            if (!p || !p.enabled || p.version !== version) {
+              console.error(`merget@merget-queue ${version} is not installed and enabled: ${JSON.stringify(installed)}`);
+              process.exit(1);
+            }
+            console.log(`merget@merget-queue ${p.version}, enabled, from ${p.source.source}`);
+          '

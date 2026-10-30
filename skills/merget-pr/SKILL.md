@@ -1,7 +1,7 @@
 ---
 name: merget-pr
 description: Reads and interprets Merget's analysis of a GitHub pull request (findings, verdict, brief, queue position, enforcement state, credits) through the `merget` MCP server. Use when the user mentions Merget, a Merget check, a Merget finding or comment on a PR, a merge queue verdict, "would block", blocking or advisory findings, broken references, interference between branches, Layer 1 / Layer 2 findings, provenance (precise / syntactic), shadowed or suppressed findings, review findings, textual conflicts (with the target or with a pull request ahead in the queue), a merge brief, queue rank or position, queue enforcement, or asks whether a pull request is safe to merge, why a PR is blocked or held, what Merget found on a PR, what to fix before merging, or what will break when a PR lands, or what a PR cost in Merget credits; also use before reviewing, fixing, rebasing or merging a pull request in a repository where Merget is installed.
-disable-model-invocation: false
+compatibility: "Needs Merget's MCP server (merget, https://sema.merget.ai/mcp) connected and signed in."
 ---
 
 # Merget pull request findings
@@ -18,7 +18,7 @@ This skill teaches the tools that exist today. **If a tool, argument, field or c
 
 ## Tools
 
-Through the `merget` MCP server (installed by this plugin, `/mcp` shows it as `plugin:merget:merget` and the tools are `mcp__plugin_merget_merget__<name>`; added by hand as `merget`, they are `mcp__merget__<name>`):
+Through the `merget` MCP server. The tools carry the names Merget's MCP server gives them (`merget_pr_findings`, …); your agent may show them under a prefix of its own (the `merget-setup` skill names each agent's):
 
 | Tool | Arguments | Returns |
 |------|-----------|---------|
@@ -100,9 +100,9 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 
 - `repo_not_found` (404): the repository is unknown to Merget, has no installation, or the token was consented for another organization; the three are indistinguishable by design. Ask which organization was chosen at sign-in and whether Merget is installed on the repository.
 - `agent_access_disabled` (403): the organization or repository switched agents off in Merget's dashboard (Settings → Agents, Repositories → agent access). Only an owner can change it.
-- `insufficient_scope` (403): the token lacks the scope the tool needs (`merget:findings.read` for these tools, `merget:queue.read` for the queue block). Ask the user to turn it on for this agent in Merget under Settings › Agents, or to authorize again (in Claude Code `/mcp` → the Merget server → Clear authentication → Authenticate, ticking it on the sign-in page). Never retry blindly.
+- `insufficient_scope` (403): the token lacks the scope the tool needs (`merget:findings.read` for these tools, `merget:queue.read` for the queue block). Ask the user to turn it on for this agent in Merget under Settings › Agents, or to authorize again, ticking it on the sign-in page: the human signs this agent in again from their agent's MCP settings (the `merget-setup` skill lists each agent's steps). Never retry blindly.
 - `agent_scope_disabled` (403): the organization's owner does not let agents use that scope there; an owner allows it under Settings › Agents.
-- `unauthorized` (401): sign-in is needed (`/mcp` → the Merget server → Authenticate).
+- `unauthorized` (401): sign-in is needed: the human signs this agent in from their agent's MCP settings (the `merget-setup` skill lists each agent's steps).
 - `verdict.status` is `failed`: there is no verdict; do not report the PR as clean or blocked. Point at `run.details_url`.
 - `rate_limited` (429): wait for `Retry-After`; do not loop.
 - The user asks for something these tools cannot do. Merging, re-running Merget, changing the queue and dismissing a finding that is wrong are the `merget-operate` skill's (`merget_queue_action`, with `merget:queue.write` and the user's confirmation), and so is a batch whose CI failed: reading it (`merget_batch`) and its fix, pushed to the pull request's branch or submitted to Merget to land with the pull request; and so are conflicts Merget handed to the author where the hand-off offers to resolve them for merge time (`queue.handoff.resolve`) or a resolution of them submitted to Merget stands (`queue.resolution`): resolved on R0, the commit the queue lands for the pull request, and submitted to Merget (`resolve`) to land with the pull request, beside merging the target branch and pushing; a repository Merget is not installed on needs its GitHub App (the `merget-setup` skill). Never imply these tools did any of it.
