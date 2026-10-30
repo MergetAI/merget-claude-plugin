@@ -1,10 +1,10 @@
 # Graph tools: arguments and results
 
 Every tool below is `POST /v1/repos/:owner/:name/graph/:tool` on the HTTP
-API and `merget_graph_<tool>` through MCP (with `repo` added; in Claude Code
-`mcp__plugin_merget_merget__merget_graph_<tool>` through this plugin, or
-`mcp__merget__merget_graph_<tool>` for a server added by hand as `merget`).
-Scope `merget:graph.read`. Shapes as served by `api_version: "2026-09"`.
+API and `merget_graph_<tool>` through MCP (with `repo` added). The tools
+carry the names Merget's MCP server gives them; your agent may show them
+under a prefix of its own. Scope `merget:graph.read`. Shapes as served by
+`api_version: "2026-09"`.
 Merget builds a commit's graph on first use: the first call on a fresh
 commit answers `graph_pending` (202) with `retry_after_secs`, and the same
 call succeeds once the build lands.
@@ -195,8 +195,9 @@ inside a code span, which you decode — `suggestions` arrives as
 `` suggestions: `[{"line":301,"path":"src/sds.c","text":"sdscatlen"}]` ``
 (a value holding backticks gets a longer delimiter; the JSON is everything
 between the two). `_meta["merget.error"]` holds the same body as plain JSON
-for a client that exposes it; Claude Code passes only the text to the
-model. The full table with what to do is in SKILL.md → "Errors".
+for a client that exposes it; many clients pass only the text to the
+model: read the details from its lines. The full table with what to do is
+in SKILL.md → "Errors".
 
 ## Examples
 

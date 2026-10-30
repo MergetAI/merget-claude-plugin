@@ -1,0 +1,36 @@
+# Publishes server.json to the official MCP Registry. Run it by hand after a
+# release: the registry namespace ai.merget/merget is proven by a DNS TXT
+# record on merget.ai, and the Ed25519 private key that signs that proof is
+# the MCP_PUBLISHER_TOKEN secret (the key's hex, as `mcp-publisher login dns
+# --private-key` takes it). RELEASING.md has the one-time setup.
+name: Publish to the MCP Registry
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check server.json is current
+        run: |
+          node packaging/build.mjs --validate
+          node -e 'const s=require("./server.json"); console.log(s.name, s.version, s.remotes[0].url)'
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: Authenticate to the MCP Registry
+        run: ./mcp-publisher login dns --domain merget.ai --private-key "${{ secrets.MCP_PUBLISHER_TOKEN }}"
+
+      - name: Publish server.json
+        run: ./mcp-publisher publish

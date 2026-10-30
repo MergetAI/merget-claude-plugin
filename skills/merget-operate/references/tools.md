@@ -1,10 +1,10 @@
 # Operating tools: arguments and answers
 
-Each tool is `merget_<name>` on the `merget` MCP server
-(`mcp__plugin_merget_merget__merget_<name>` in Claude Code through this
-plugin). A success answers markdown for you in `content[0].text` and the
-document itself in `structuredContent`; a long document's text is cut at
-about 12,000 characters with a line pointing at `structuredContent`. A
+Each tool is `merget_<name>` on the `merget` MCP server. The tools carry
+the names Merget's MCP server gives them; your agent may show them under a
+prefix of its own. A success answers markdown for you in `content[0].text`
+and the document itself in `structuredContent`; a long document's text is
+cut at about 12,000 characters with a line pointing at `structuredContent`. A
 refusal is a result with `isError: true` and no `structuredContent`, whose
 text is `error <code> (HTTP <status>): <message>` plus one `key: value` line
 per detail. Read a detail's value from its line: a number, a boolean or
@@ -13,8 +13,8 @@ name), and a text, a list or an object is JSON inside a code span, which
 you decode for the value (`` org_name: `"Acme"` `` means the name Acme; a
 value holding backticks gets a longer delimiter, and the JSON is everything
 between the two). The same body, as plain JSON, is in `_meta["merget.error"]`
-for a client that exposes it; Claude Code passes only the text to the
-model. Every call is recorded in
+for a client that exposes it; many clients pass only the text to the
+model: read the details from its lines. Every call is recorded in
 the organization's agent usage (Settings › Agents), a secret's value as
 `[redacted]`.
 

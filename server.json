@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "description": "Merget for coding agents: set up the merge queue, operate it, and read its findings and code graphs.",
+  "name": "ai.merget/merget",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://sema.merget.ai/mcp"
+    }
+  ],
+  "repository": {
+    "source": "github",
+    "url": "https://github.com/MergetAI/merget-plugin"
+  },
+  "title": "Merget",
+  "version": "0.8.0",
+  "websiteUrl": "https://sema.merget.ai"
+}

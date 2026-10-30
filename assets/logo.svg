@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="114" viewBox="0 0 128 114" role="img">
+<defs>
+ <linearGradient id="left-base" x1="0" y1="72" x2="55" y2="5" gradientUnits="userSpaceOnUse"><stop stop-color="#103DF3"/><stop offset="1" stop-color="#188AFF"/></linearGradient>
+ <linearGradient id="left-core" x1="45" y1="0" x2="48" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#95E1F2"/><stop offset="1" stop-color="#A6E4E9"/></linearGradient>
+ <linearGradient id="right-base" x1="95" y1="20" x2="64" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD98E"/><stop offset="1" stop-color="#FFEBC1"/></linearGradient>
+ <linearGradient id="right-core" x1="53" y1="2" x2="57" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF8DD"/><stop offset="1" stop-color="#E5F3E6"/></linearGradient>
+ <clipPath id="left-face"><path d="M52 0 L0 64 L52 90 Z"/></clipPath>
+ <clipPath id="right-face"><path d="M52 0 L104 64 L52 90 Z"/></clipPath>
+ <g id="pyramid">
+  <path d="M52 0 L0 64 L52 90 Z" fill="url(#left-base)"/>
+  <g clip-path="url(#left-face)">
+   <path d="M52 0H49V12H44V25H38V39H31V54H23V71H16V90H52Z" fill="#159DFA"/>
+   <path d="M52 0H50V12H47V28H42V46H36V65H31V90H52Z" fill="#50C1F2"/>
+   <path d="M52 0H51V17H49V36H45V59H41V90H52Z" fill="url(#left-core)"/>
+  </g>
+  <path d="M52 0 L104 64 L52 90 Z" fill="url(#right-base)"/>
+  <g clip-path="url(#right-face)">
+   <path d="M52 0H55V16H59V33H65V51H73V70H80V90H52Z" fill="#FFF0C4"/>
+   <path d="M52 0H53V16H56V36H60V59H65V90H52Z" fill="url(#right-core)"/>
+  </g>
+ </g>
+ <g id="pyramid-flat">
+  <path d="M52 0 L0 64 L52 90 Z" fill="#165DFF"/>
+  <path d="M52 0 L104 64 L52 90 Z" fill="#FFE4A8"/>
+  <path d="M52 0H50V22H46V49H41V84.5L52 90Z" fill="#91DDF4"/>
+ </g>
+ <g id="pyramid-mono">
+  <path d="M51 0 L0 64 L51 89.5 Z" fill="currentColor"/>
+  <path d="M54 2.5 L104 64 L54 89 Z" fill="currentColor"/>
+ </g>
+</defs><g transform="translate(12,12) scale(1.0)" color="#121820"><use xlink:href="#pyramid"/></g></svg>

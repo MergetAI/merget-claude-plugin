@@ -1,0 +1,80 @@
+# A release is a version bump in packaging/source.json landing on main. The
+# tag and the GitHub release follow from it, so nobody tags by hand; the zip
+# is what directories that take an upload (OpenAI's, for one) ask for.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - packaging/source.json
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The tag decides. A push can carry several commits, so the previous
+      # commit's version says nothing about whether this one is new; a version
+      # that is tagged already was released before. The value reaches the later
+      # steps through env, never spliced into their shell text.
+      - name: Is this version released yet?
+        id: version
+        run: |
+          set -e
+          new="$(node -p 'require("./packaging/source.json").version')"
+          if ! printf '%s' "$new" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "version \"$new\" is not X.Y.Z" >&2
+            exit 1
+          fi
+          echo "version=$new" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "v$new" >/dev/null 2>&1; then
+            echo "tag v$new already exists; nothing to release"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The CHANGELOG section for this version, from its heading to the next.
+      - name: Release notes from the CHANGELOG
+        if: steps.version.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -e
+          awk -v v="$VERSION" '
+            /^## / { if (found) exit; if (index($0, "## " v " ") == 1) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "CHANGELOG.md has no section for $VERSION" >&2
+            exit 1
+          fi
+
+      - name: Zip the plugin
+        if: steps.version.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -e
+          zip -r "merget-plugin-v$VERSION.zip" . \
+            -x '.git/*' '.github/*' 'packaging/schemas/*' 'release-notes.md' '*.zip'
+
+      - name: Tag and publish the release
+        if: steps.version.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -e
+          gh release create "v$VERSION" "merget-plugin-v$VERSION.zip" \
+            --target "$GITHUB_SHA" \
+            --title "merget $VERSION" \
+            --notes-file release-notes.md

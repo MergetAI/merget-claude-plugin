@@ -143,7 +143,8 @@ inside a code span, which you decode (`` scope: `"merget:findings.read"` ``
 means the scope merget:findings.read; a value holding backticks gets a longer
 delimiter, and the JSON is everything between the two).
 `_meta["merget.error"]` holds the same body as plain JSON for a client that
-exposes it; Claude Code passes only the text to the model.
+exposes it; many clients pass only the text to the model: read the details
+from its lines.
 
 | Status | `code` | Meaning |
 |--------|--------|---------|
