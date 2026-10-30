@@ -14,7 +14,7 @@ The agent acts as you, never as more: within the permissions you grant it
 when you sign in, and with your own GitHub permission on each repository.
 With every permission it can:
 
-- read pull requests' findings, runs and briefs, what they cost in credits, their place in the queue, and the code graph of any commit Merget has built;
+- read pull requests' findings, runs and briefs, what they cost in credits, their place in the queue, the fixes and resolutions submitted to Merget for them, and the code graph of any commit Merget has built;
 - read your organization: its repositories and their settings, members, setup state, runs, analytics and GitHub installations;
 - change repositories: turn Merget on or off, choose the automation mode and target branch, change settings and manage a repository's validation secrets (with **Maintain** or **Admin** on the repository in GitHub);
 - check GitHub installations again, after you accept a permission or change the App's repositories;
@@ -229,7 +229,7 @@ to approve.
 |------------|----------------|
 | `merget:findings.read` | read pull-request and run findings, merge briefs and repository summaries, and what pull requests cost in credits |
 | `merget:graph.read` | use the graph tools on any commit Merget has built |
-| `merget:queue.read` | read queue position, enforcement and branch relationships, and every repository's queue |
+| `merget:queue.read` | read queue position, enforcement and branch relationships, every repository's queue, and what was submitted to Merget for a pull request, in the queue or not |
 | `merget:org.read` | read repositories and their settings, members, runs, analytics, GitHub installations, setup state and the docs |
 | `merget:repos.write` | change repository settings, including turning Merget on or off and the automation mode, manage a repository's validation secrets, and check GitHub installations again |
 | `merget:queue.write` | hold, release, retry and merge pull requests in the merge queue, including merge anyway; dismiss findings; and submit fixes for failed batches and resolutions of pull requests' conflicts for merge time, which Merget lands with the pull request |
