@@ -112,4 +112,4 @@ These restate the rules the document itself carries in `interpretation.rules`; t
 - Every field of the findings document, the runs list, the receipt and the queue block → [references/findings-schema.md](references/findings-schema.md)
 - The classification and verdict rules, with worked examples of what to say → [references/interpretation.md](references/interpretation.md)
 - Graph queries about a finding, a symbol or a commit → the `merget-graph` skill
-- Queue actions (retry, hold, land, resolving conflicts for merge time), what was submitted to Merget for a pull request after it left the queue, and repository settings → the `merget-operate` skill
+- Queue actions (retry, hold, land, resolving conflicts for merge time), what was submitted to Merget for a pull request after it left the queue, the queue's Code view (`merget_queue_code`: the symbols the queued pull requests change and the evidence behind each pair that interferes), and repository settings → the `merget-operate` skill

@@ -28,6 +28,73 @@ names or values only:
 The version header became `Merget-Api-Version` at the same time;
 `Sema-Api-Version` comes beside it until a later Merget release drops it.
 
+## 0.7.0 — 2026-10-21
+
+Needs the Merget release that serves `merget_queue_code`, the queue's Code
+view for agents: twenty-nine tools, thirteen that read and sixteen
+operating ones. Against an earlier Merget, `merget_queue_code` is not among
+its tools (a call to it is refused `unknown_tool`); the rest works as 0.6.1
+teaches it. 0.6.1 still works against the new release; it does not teach
+the new tool.
+
+- New tool `merget_queue_code` (`merget:queue.read`, read-only; `repo`,
+  `number`, `with`, `symbol`, `generation`, `branch`, `max_tokens`): the
+  queue's Code view, as the dashboard's **Code** view shows it, joined by
+  Merget — the symbols the plan's open pull requests change or sit one call
+  away from, the edges between them, and the evidence (witnesses) behind
+  every pair that interferes — as markdown within `max_tokens` (default
+  2000, clamped to 8000) and `structuredContent` holding exactly the rows
+  the text shows, with the plan's totals. Without `number` or `symbol`, the
+  overview: the pull requests, the pairs, the symbols two of them share and
+  the edges across them; with `number`, one pull request: its pairs, what
+  it changes by file, its context and what the witnesses implied; with
+  `number` and `with`, one pair: every witness with its two ends, Layer-1
+  findings first and precise before the rest, then dependence chains,
+  shared symbols and files; with `symbol`, one symbol: the pull requests
+  that change it, are one call away from it or have a witness naming it,
+  where each head has it, and its edges. A pull request no longer open is
+  left out with its pairs and listed in `departed`. `merget-operate` names
+  the tool in its tools table and under The merge queue, its refusals
+  table gains `ambiguous`, `symbol_not_found`, `entry_not_found` and
+  `code_view_busy`, and its `stale_generation` row says to call again
+  without `generation` once the new plan is published. Its tools reference
+  gives the arguments, the answer and every refusal: 400 `invalid_argument`
+  (`with` without `number` or equal to it, `symbol` with either), 400
+  `ambiguous` and 404 `symbol_not_found` with `suggestions`, 404
+  `entry_not_found` (`departed`, `entries`), 409 `stale_generation`, 404
+  `queue_not_found` for a branch with no queue, and 429 `code_view_busy`
+  (retryable) and `rate_limited`, each with `retry_after_secs`. `.mcp.json`
+  titles it "Merget: code view of a queue".
+- Its budget: a section cut between its rows ends with how many it left out
+  and a hint, and a closing `Left out for room:` line names each section
+  left out whole; `truncated` is `true` and `dropped` names each cut. In the
+  overview the skill narrows with `number`, `with` or `symbol` rather than
+  raise the budget; one pull request, pair or symbol has nothing narrower,
+  so there it raises `max_tokens`. Every call reads and joins the whole
+  plan, so Merget builds one Code view at a time per person, across all
+  their agents, at a lower rate than the other tools: the skill calls it one
+  at a time and waits `retry_after_secs`. An empty or partial view
+  (`has_code` or `has_graph` false) is no evidence that pull requests do
+  not interact.
+- `follow_up`: for each method shown that a pull request's head can open
+  (at most 40), `{rev: "pr:N:head", at: "file:line", name, key}` to pass to
+  `merget_graph_slice`; none for a finding site, a symbol only a witness
+  named or a type. In a pair, each witness carries both its ends'
+  (`from_follow_up`, `to_follow_up`, each at its own pull request's head),
+  and a Layer-1 witness its `site_at`. `merget-graph` anchors on it: its
+  protocol's first step names the queue's Code view beside a finding and a
+  file.
+- The queue reference names the Code view beside the views of
+  `merget_queue_get`, and the tools reference's `include: code` on the
+  `relationships` view points at it: the same records, joined and within a
+  budget. `merget-pr`'s references send the Code view to `merget-operate`.
+- README: what agents can do, `merget-operate`'s line and
+  `merget:queue.read` name the queue's Code view.
+- Plugin description: twenty-nine tools, sixteen that set up and operate
+  Merget, and what the new one does. The skill descriptions are unchanged;
+  `merget-operate`'s stays at 1,019 of the 1,024 characters a description
+  may have.
+
 ## 0.6.1 — 2026-10-17
 
 Needs the Merget release that serves what was submitted to Merget for a

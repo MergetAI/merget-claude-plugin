@@ -45,6 +45,12 @@ the ones whose CI failed a required check), `amendments` (what was
 submitted to Merget for one pull request, `number` required, in the queue
 or not: [How a resolution shows](#how-a-resolution-shows)).
 
+The code behind the plan is `merget_queue_code {repo}`, the queue's Code
+view: the symbols the plan's open pull requests change or sit one call away
+from, the edges between them and the evidence behind each pair that
+interferes, as an overview or for one pull request, one pair or one symbol,
+within a budget ([tools.md](tools.md)).
+
 ## Actions
 
 | `action` | Arguments | Modes | Answer | Refusals |
