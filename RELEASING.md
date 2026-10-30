@@ -107,7 +107,16 @@ rejects, hence `--strict=false` for that one pair.
 - **Directory listing fields.** `claude plugin validate --profile directory`
   (what Anthropic's directory runs) also wants a `privacyPolicyUrl` for a
   plugin that connects to a remote server. Add it to `source.json` and emit
-  it from `build.mjs` into `.claude-plugin/plugin.json` once the URL exists.
+  it from `build.mjs` into `.claude-plugin/plugin.json` once the URL is
+  live. The URLs the directories ask for, checked 2026-10-30:
+  - Privacy policy `https://merget.ai/legal/privacy-statement` and terms
+    `https://merget.ai/legal/terms-of-service`: written (MergetAI/merget-web,
+    `src/legal/`, routed under `/legal/<slug>`) but not served yet — today
+    `merget.ai` redirects every `/legal/*` path to its home page, because
+    the old site still answers there. Submit only once they load.
+  - Support `https://sema.merget.ai/docs/help` (the docs' "Help and
+    support" page) and security `https://sema.merget.ai/docs/security`,
+    both live.
 - **PNG logo.** Only `assets/logo.svg` ships. Every reader here accepts SVG,
   and rasterizing without a dependency is not worth a build step; add
   `assets/logo.png` when a directory asks for one.
