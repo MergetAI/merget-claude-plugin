@@ -32,6 +32,54 @@ names or values only:
 The version header became `Merget-Api-Version` at the same time;
 `Sema-Api-Version` comes beside it until a later Merget release drops it.
 
+## 0.8.1 — 2026-10-30
+
+Ready for the directories. Needs no particular Merget release: the server is
+the one 0.8.0 connects to, and the skills teach what 0.8.0 teaches.
+
+- **merget-operate within the skill limit.** The skill's body is under the
+  24,000-byte limit a skill body may have; the detail that put it over moved
+  into its references.
+- **Square logo.** `assets/logo.svg` is a 128 × 128 square with the mark
+  centred, 12 px of transparent padding at the sides and 19 px above and
+  below, legible on light and dark
+  (Antigravity wants at least 128 × 128 square; Devin's maintainers and
+  Cursor's cross-listing form ask for 1:1). `assets/logo.png`, new, is the
+  same geometry at 1024 × 1024, rendered from the mark's flat variant, for
+  the directories that take a PNG.
+- **Author url.** `author` carries `url` (`https://sema.merget.ai`) in every
+  manifest whose schema allows it: `.claude-plugin/plugin.json`,
+  `.claude-plugin/marketplace.json` (the owner and the plugin entry), the
+  root `plugin.json` and `.antigravity-plugin/plugin.json`, the last two as
+  exactly `{name, url}`, which Antigravity's validator expects since 1.4.8.
+- **Suggested prompts.** `.antigravity-plugin/plugin.json` gains
+  `suggestedPrompts`, the three chips Antigravity shows on a plugin's page:
+  set Merget up for this repository, is this pull request safe to merge,
+  what is waiting in the merge queue. Not in the Agent Plugins schema, so
+  the root `plugin.json` does without.
+- **Listing fields.** `.claude-plugin/plugin.json` gains `displayName`
+  (`Merget`), which Claude Code accepts, and the fields Anthropic's directory
+  reads and Claude Code ignores at load: `supportUrl`
+  (`https://sema.merget.ai/docs/help`) and `icon` (`./assets/logo.png`), from
+  a new `listing` object in `source.json`.
+  `build.mjs` emits `documentationUrl`, `privacyPolicyUrl` and
+  `termsOfServiceUrl` from the same object once they are set, which waits
+  for the privacy and terms pages to be served; the LICENSE waits with them
+  (RELEASING.md, Open items). None of it goes into `marketplace.json`, where
+  `claude plugin validate` flags it as unknown.
+- **Shorter description.** One sentence of 158 characters that still says
+  what Merget is and what the plugin adds: Antigravity recommends 120–160,
+  Devin one action-oriented sentence. `build.mjs --check` now holds the
+  description to 120–160 characters, where it allowed 400.
+- **`--check` on a Windows checkout.** The generated-file comparison now
+  reads the files with line endings normalised, as every other rule does,
+  so a checkout with CRLF endings no longer reports every manifest out of
+  date.
+- **CI.** `validate.yml` runs `claude plugin validate . --profile directory`
+  after the strict validator, advisory until a LICENSE is chosen: its
+  findings (`LICENSE_MISSING`, `PRIVACY_URL_MISSING`) show in the log
+  without failing the job.
+
 ## 0.8.0 — 2026-10-30
 
 One plugin for every coding agent. The repository is now

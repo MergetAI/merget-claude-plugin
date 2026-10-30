@@ -1,9 +1,10 @@
 {
   "author": {
-    "name": "Merget AI"
+    "name": "Merget AI",
+    "url": "https://sema.merget.ai"
   },
   "category": "development",
-  "description": "Merget is a semantic merge queue for GitHub. This plugin connects your coding agent to Merget's MCP server and adds four skills: set Merget up, operate its merge queue, read a pull request's findings and verdict, and query its code property graphs.",
+  "description": "Connects your coding agent to Merget, a semantic merge queue for GitHub: set it up, operate it, read a pull request's findings and verdict, query code graphs.",
   "displayName": "Merget",
   "homepage": "https://sema.merget.ai",
   "keywords": [
@@ -15,6 +16,10 @@
     "code-graph",
     "github"
   ],
+  "listing": {
+    "icon": "./assets/logo.png",
+    "supportUrl": "https://sema.merget.ai/docs/help"
+  },
   "logo": "assets/logo.svg",
   "marketplace": {
     "description": "Merget's plugin for coding agents: set Merget up, operate its merge queue, and read its findings and code graphs.",
@@ -30,6 +35,11 @@
     "title": "Merget"
   },
   "repository": "https://github.com/MergetAI/merget-plugin",
+  "suggestedPrompts": [
+    "Set Merget up for this repository",
+    "Is this pull request safe to merge?",
+    "What is waiting in the merge queue?"
+  ],
   "summary": "Merget for coding agents: set up the merge queue, operate it, and read its findings and code graphs.",
-  "version": "0.8.0"
+  "version": "0.8.1"
 }

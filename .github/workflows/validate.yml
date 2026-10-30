@@ -67,6 +67,12 @@ jobs:
           npm i -g @anthropic-ai/claude-code
           claude plugin validate --strict .
 
+      # Advisory: LICENSE_MISSING is a known refusal until the licence is
+      # chosen (RELEASING.md, Open items), so the findings show in the log
+      # without failing the job.
+      - name: Plugin directory profile (advisory until a LICENSE is chosen)
+        run: claude plugin validate . --profile directory || true
+
   install-smoke:
     name: Install into a clean Claude Code home
     runs-on: ubuntu-latest

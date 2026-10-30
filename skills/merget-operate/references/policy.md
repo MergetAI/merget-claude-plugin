@@ -41,7 +41,8 @@ change: a full customer view is a valid patch too, but it re-sends values
 another person may be changing at the same moment.
 
 Every change re-prepares the repository's queued pull requests and voids a
-standing land request; a patch that changes nothing prepares nothing again.
+standing land request (`void_reason`: "this repository's mode or policy
+changed"); a patch that changes nothing prepares nothing again.
 
 ## Keys
 

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="114" viewBox="0 0 128 114" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="128" viewBox="0 0 128 128" role="img">
 <defs>
  <linearGradient id="left-base" x1="0" y1="72" x2="55" y2="5" gradientUnits="userSpaceOnUse"><stop stop-color="#103DF3"/><stop offset="1" stop-color="#188AFF"/></linearGradient>
  <linearGradient id="left-core" x1="45" y1="0" x2="48" y2="90" gradientUnits="userSpaceOnUse"><stop stop-color="#95E1F2"/><stop offset="1" stop-color="#A6E4E9"/></linearGradient>
@@ -28,4 +28,4 @@
   <path d="M51 0 L0 64 L51 89.5 Z" fill="currentColor"/>
   <path d="M54 2.5 L104 64 L54 89 Z" fill="currentColor"/>
  </g>
-</defs><g transform="translate(12,12) scale(1.0)" color="#121820"><use xlink:href="#pyramid"/></g></svg>
+</defs><g transform="translate(12,19)" color="#121820"><use xlink:href="#pyramid"/></g></svg>
