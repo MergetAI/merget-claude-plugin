@@ -197,6 +197,9 @@ custom servers by URL and headers only: see
 agy plugin install https://github.com/MergetAI/merget-plugin
 ```
 
+If the plugin's `merget` server does not appear after the install, add it by
+hand as the next paragraph describes.
+
 Server only: the MCP Store, or `~/.gemini/config/mcp_config.json` with
 `{ "mcpServers": { "merget": { "serverUrl": "https://sema.merget.ai/mcp" } } }`,
 then **Authenticate** next to the server under **Customizations**. Gemini

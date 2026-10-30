@@ -1,9 +1,10 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "author": {
-    "name": "Merget AI"
+    "name": "Merget AI",
+    "url": "https://sema.merget.ai"
   },
-  "description": "Merget is a semantic merge queue for GitHub. This plugin connects your coding agent to Merget's MCP server and adds four skills: set Merget up, operate its merge queue, read a pull request's findings and verdict, and query its code property graphs.",
+  "description": "Connects your coding agent to Merget, a semantic merge queue for GitHub: set it up, operate it, read a pull request's findings and verdict, query code graphs.",
   "homepage": "https://sema.merget.ai",
   "keywords": [
     "merget",
@@ -16,5 +17,5 @@
   ],
   "name": "merget",
   "repository": "https://github.com/MergetAI/merget-plugin",
-  "version": "0.8.0"
+  "version": "0.8.1"
 }

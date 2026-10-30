@@ -46,6 +46,13 @@ const SCHEMAS = {
   },
 };
 
+// The fields Anthropic's plugin directory reads from .claude-plugin/plugin.json
+// and Claude Code ignores at load. They go into that file alone: in a
+// marketplace entry `claude plugin validate` flags them as unknown. Each is
+// emitted only when source.listing sets it, so a URL whose page is not live
+// yet stays out (RELEASING.md, Open items).
+const LISTING_KEYS = ["icon", "documentationUrl", "supportUrl", "privacyPolicyUrl", "termsOfServiceUrl"];
+
 // Only the Claude Code manifest reader is lenient about extra keys (it strips
 // them with a warning); the others are closed schemas, so each target lists
 // its fields by hand rather than spreading the source object.
@@ -53,10 +60,15 @@ function targets() {
   const { name, version, description, author, homepage, repository, keywords } = source;
   const mcp = source.mcp;
   const licensed = source.license ? { license: source.license } : {};
+  // Agent Plugins and Antigravity take author as {name, email, url}; we ship
+  // exactly {name, url}.
+  const closedAuthor = { name: author.name, url: author.url };
+  const listing = Object.fromEntries(LISTING_KEYS.filter((k) => source.listing?.[k]).map((k) => [k, source.listing[k]]));
+  const prompts = source.suggestedPrompts ? { suggestedPrompts: source.suggestedPrompts } : {};
   return [
     {
       path: ".claude-plugin/plugin.json",
-      data: { name, version, description, author, homepage, ...licensed },
+      data: { name, displayName: source.displayName, version, description, author, homepage, ...licensed, ...listing },
     },
     {
       path: ".claude-plugin/marketplace.json",
@@ -92,7 +104,7 @@ function targets() {
         name,
         version,
         description,
-        author: { name: author.name },
+        author: closedAuthor,
         homepage,
         repository,
         keywords,
@@ -118,11 +130,14 @@ function targets() {
         description,
         version,
         logo: source.logo,
-        author: { name: author.name },
+        author: closedAuthor,
         homepage,
         repository,
         keywords,
         ...licensed,
+        // Up to three prompts, shown as chips on the plugin's page. Not in
+        // the Agent Plugins schema, so the root plugin.json does without.
+        ...prompts,
       },
       validateWith: ["antigravityPlugin"],
     },
@@ -162,7 +177,13 @@ const fail = (file, line, message) => failures.push(`${file}:${line}: ${message}
 function checkSource() {
   if (!/^\d+\.\d+\.\d+$/.test(source.version)) fail(SOURCE, 1, `version "${source.version}" is not X.Y.Z`);
   if (source.summary.length > 100) fail(SOURCE, 1, `summary is ${source.summary.length} characters; the registry allows 100`);
-  if (source.description.length > 400) fail(SOURCE, 1, `description is ${source.description.length} characters; keep it around 250`);
+  // Antigravity's docs recommend 120-160 characters; Devin's marketplace wants
+  // one action-oriented sentence under about 200; nothing else caps it.
+  const d = source.description.length;
+  if (d < 120 || d > 160) fail(SOURCE, 1, `description is ${d} characters; keep it between 120 and 160`);
+  for (const key of Object.keys(source.listing ?? {})) {
+    if (!LISTING_KEYS.includes(key)) fail(SOURCE, 1, `listing key "${key}" is not one the plugin directory reads (${LISTING_KEYS.join(", ")})`);
+  }
   if (failures.length) {
     for (const f of failures) console.error(f);
     process.exit(1);
@@ -177,7 +198,7 @@ function checkGenerated() {
     const path = join(ROOT, t.path);
     if (!existsSync(path)) {
       fail(t.path, 1, "missing; run `node packaging/build.mjs`");
-    } else if (readFileSync(path, "utf8") !== render(t.data)) {
+    } else if (read(t.path) !== render(t.data)) {
       fail(t.path, 1, "out of date with packaging/source.json; run `node packaging/build.mjs`");
     }
   }
