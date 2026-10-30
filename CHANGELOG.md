@@ -2,10 +2,129 @@
 
 The plugin's version is `.claude-plugin/plugin.json` `version`, mirrored in
 the marketplace manifest (`.claude-plugin/marketplace.json`). Bump both
-together. The MCP tool set and the findings document are versioned separately
-by the API (`api_version`, the `Sema-Api-Version` response header): a plugin
-release never changes what the server answers, only what the skills teach and
-which tools `.mcp.json` titles.
+together. A plugin release never changes what the server answers, only what
+the skills teach and which tools `.mcp.json` titles. To take a release back,
+release the content before it again under a new, higher version (0.4.1 with
+0.3.1's skills, say), so this list stays in order: Claude Code updates a
+copy whenever the version differs from the one it has.
+
+The API versions the shape of its documents, the findings document among
+them (`api_version`, also sent as the `Merget-Api-Version` response header):
+within a version fields are only added, and a removed or renamed field bumps
+it. Merget's rename to its own name (see 0.4.0) is the one exception, made
+once within `api_version` `2026-09`, and Merget serves these under their new
+names or values only:
+
+- the MCP tool ids, `sema_*` now `merget_*`, and the server's name
+  (`serverInfo.name`), `sema` now `merget`;
+- the `_meta` keys `sema.api_version`, `sema.scope` and `sema.error`, now
+  `merget.api_version`, `merget.scope` and `merget.error`;
+- the count keys of run and analytics rows and of a run's report,
+  `sema_l1` … `git_clean_but_sema_flagged`, now `merget_l1` …
+  `git_clean_but_merget_flagged`;
+- a finding's `resolver`, now always `null`, and a graph edge's resolver,
+  now `name` or `receiver`: the provenance tier alone.
+
+The version header became `Merget-Api-Version` at the same time;
+`Sema-Api-Version` comes beside it until a later Merget release drops it.
+
+## 0.4.0 — 2026-10-06
+
+Needs the Merget release that renamed its tools to `merget_*`: its
+`tools/list` names them, its `initialize` answer names the server `merget`
+(`serverInfo.name`), and its MCP responses carry `Merget-Api-Version`. Its
+`api_version` is still `2026-09`: the rename is the one exception to what a
+version promises (see above). It no longer answers to the `sema_*` ids that
+0.3.1 and earlier teach: a call to one is refused with `unknown_tool`, which
+names the new id.
+
+- Tool ids are `merget_*`, each in place of its `sema_*` id: the twelve
+  that read pull requests and graphs, `merget_pr_findings`,
+  `merget_pr_runs`, `merget_run_findings`, `merget_queue_status`,
+  `merget_graph_symbols`, `merget_graph_finding`, `merget_graph_slice`,
+  `merget_graph_callers`, `merget_graph_callees`, `merget_graph_def_use`,
+  `merget_graph_diff` and `merget_graph_intent`, and the fourteen that set
+  up and operate Merget, `merget_status`, `merget_repos_list`,
+  `merget_repo_settings_get`, `merget_repo_update`,
+  `merget_queues_overview`, `merget_queue_get`, `merget_queue_action`,
+  `merget_runs_list`, `merget_run_get`, `merget_analytics`,
+  `merget_org_get`, `merget_installation_sync`, `merget_secrets` and
+  `merget_docs`. `.mcp.json` titles them under the new ids, and the four
+  skills and their references teach them: through this plugin Claude Code
+  names them `mcp__plugin_merget_merget__merget_<name>`, and
+  `mcp__merget__merget_<name>` for a server added by hand as `merget`.
+- Claude Code permission rules naming the old tools
+  (`mcp__plugin_merget_merget__sema_pr_findings`,
+  `mcp__plugin_merget_merget__sema_queue_action`,
+  `mcp__merget__sema_graph_slice`, …) no longer match and must be approved
+  again: approve each tool when Claude Code asks, and rewrite a `deny` or
+  `ask` rule with the new name (`mcp__plugin_merget_merget__merget_<name>`,
+  or `mcp__merget__merget_<name>` for a server added by hand), since one
+  naming an old tool applies to no tool. A rule naming only the server
+  (`mcp__plugin_merget_merget`, or `mcp__merget`) still covers every tool.
+  Claude Code names the tools from the list the server sends, so the old
+  rules stop matching once Merget serves the new names, whichever version
+  of the plugin runs. README, new: Merget's new tool names, with the same
+  advice.
+- The same holds for a choice another client keeps per tool: a tool
+  switched off in claude.ai, Claude Desktop, Cursor or VS Code, or a list
+  of the server's tools in Codex's `config.toml`, names a `sema_*` id and
+  applies to no tool once Merget serves the new names; it has to be made
+  again under them. README, Merget's new tool names, says so, and that
+  switching an agent's `merget:repos.write` and `merget:queue.write` off in
+  Merget keeps it from changing repositories or the merge queue whatever
+  its client calls the tools.
+- Copies of the skills outside the plugin, in `~/.claude/skills/` or in
+  another agent, do not update with it and keep teaching the `sema_*` ids.
+  README, Skills in other agents, new: the `skills` tool that Merget's
+  setup prompt installs them with (`npx -y skills add …`) updates them too
+  (`npx -y skills update -g` with the four skills' names), and a copy made
+  by hand has to be made again; Merget's new tool names points there.
+- The MCP server names itself `merget` (`serverInfo.name`, was `sema`); this
+  plugin's server was already `merget`, so `/mcp` still lists
+  `plugin:merget:merget`. The server's `_meta` keys are `merget.api_version`,
+  `merget.scope` and `merget.error` (the references point a client that
+  exposes `_meta` at `_meta["merget.error"]`), and the API's version header
+  is `Merget-Api-Version` (`Sema-Api-Version` comes beside it for now).
+- Permissions are `merget:*`: `merget:findings.read`, `merget:graph.read`,
+  `merget:queue.read`, `merget:org.read`, `merget:repos.write` and
+  `merget:queue.write`, each in place of its `sema:*` name
+  (`offline_access` is unchanged), in the skills' refusal advice, the
+  tools references, the findings schema and the README's permissions
+  table and consent page. Merget's refusals, `merget_status` and
+  `merget_org_get` name them so from that Merget release; the tokens Merget's
+  sign-in service issues may carry the `sema:*` names until shortly after
+  it, and Merget accepts both meanwhile, so a connection approved under the
+  old names keeps working and nothing needs signing in again. Merget's
+  product id becomes `merget` (it was `sema`) on the same schedule.
+- The setup tools reference gives a repository's default queue label as
+  `merget:queue`, where it was `sema:queue`.
+- Provenance is the tier only: a finding's `provenance` is `precise` or
+  `syntactic` (`git` for a conflict) and its `resolver` is `null`; a graph
+  edge's `provenance.resolver` is `name` or `receiver`, where it was
+  `sema-link:name` or `sema-link:receiver`. The skills read the class,
+  never the resolver: a `precise` edge from the receiver pass is precise,
+  and the class `receiver` is left for an edge no pass graded.
+  `merget-graph` describes `syntactic` without Merget's internals, as name
+  matching that could not prove a unique binding.
+- `merget-pr`'s references point at Merget's docs — the `findings` page for
+  the provenance tiers, the `states` page for the queue's states
+  (`merget_docs`, or the dashboard's Docs) — where they named documents
+  that only Merget's own repository holds.
+- No command-line fallbacks: the skills and the README no longer describe
+  Merget's internal command-line tool, its commands or its environment
+  variables; for an agent, the MCP server is the way in. `merget-pr`'s safe
+  set lists its four tools only, and the README drops the tool's section,
+  its token recipe and the note that the tool ids still carried an
+  internal codename. A client that cannot sign in through OAuth gets its
+  token from an OAuth client of its own (README, Without OAuth), and the
+  0.2.0 upgrade steps no longer name the tool.
+- README, claude.ai and Claude Desktop: choose **Use Claude's published
+  identity**, as Merget's docs and setup prompt advise: the connector
+  doesn't register with Merget, so it doesn't lapse, and Merget can reuse
+  an approval. **Register automatically** works too, for when Merget can't
+  check Claude's published details. The README said to choose
+  **Register automatically**, not the published identity.
 
 ## 0.3.1 — 2026-10-05
 

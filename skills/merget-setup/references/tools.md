@@ -1,7 +1,7 @@
 # Setup tools: arguments and answers
 
-Each tool below is `sema_<name>` on the `merget` MCP server
-(`mcp__plugin_merget_merget__sema_<name>` in Claude Code through this
+Each tool below is `merget_<name>` on the `merget` MCP server
+(`mcp__plugin_merget_merget__merget_<name>` in Claude Code through this
 plugin). A success answers markdown for you in `content[0].text` and the
 document itself in `structuredContent`. A refusal is a result with
 `isError: true` and no `structuredContent`, whose text is
@@ -13,7 +13,7 @@ span: decode that JSON for the value, so `` org_name: `"Acme"` `` means the
 name Acme and `` org: `"u-7d9b0c3e"` `` the slug u-7d9b0c3e. A value that
 itself holds backticks gets a longer run of them as its delimiter; the JSON
 is everything between the two delimiters. The same body, as plain JSON, is
-in `_meta["sema.error"]` for a client that exposes it; Claude Code passes
+in `_meta["merget.error"]` for a client that exposes it; Claude Code passes
 only the text to the model. The table of codes is in SKILL.md, "When a call
 is refused".
 
@@ -26,12 +26,12 @@ user belongs to exactly one; otherwise the call answers 400
 listing each as `{slug, display_name}`: ask the human which one by name, and
 pass its slug. `repo` is a repository as GitHub names it, `owner/name`.
 
-A call runs under a deadline: 20 s, 30 s for `sema_status`, a minute for the
-tools that read GitHub live (`sema_repo_settings_get`, `sema_repo_update`,
-`sema_installation_sync`). A write that answers `timeout` may still have
+A call runs under a deadline: 20 s, 30 s for `merget_status`, a minute for the
+tools that read GitHub live (`merget_repo_settings_get`, `merget_repo_update`,
+`merget_installation_sync`). A write that answers `timeout` may still have
 happened: read the state before repeating it.
 
-## `sema_status` — `sema:org.read`, read-only
+## `merget_status` — `merget:org.read`, read-only
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -39,9 +39,9 @@ happened: read the state before repeating it.
 
 ```json
 {"identity": {"sub": "…", "handle": "octo", "agent": true, "client_id": "dcr_…", "consented_org": "u-7d9b0c3e", "consented_org_name": "Acme"},
- "scopes": ["sema:org.read", "sema:repos.write", "offline_access"],
+ "scopes": ["merget:org.read", "merget:repos.write", "offline_access"],
  "orgs": [{"slug": "u-7d9b0c3e", "role": "member", "display_name": "Acme", "agent_access": true, "agent_scopes": null,
-           "permissions": ["sema:org.read", "sema:repos.write"],
+           "permissions": ["merget:org.read", "merget:repos.write"],
            "setup": {"state": "no_installation", "next_step": {"action": "install_github_app", "description": "…", "url": "https://sema.merget.ai/orgs/u-7d9b0c3e/settings/github"},
                      "counts": {…}, "github": {…}, "access": {…}}}],
  "next_step": {"action": "install_github_app", "description": "…", "url": "…", "org": "u-7d9b0c3e", "org_name": "Acme"}}
@@ -69,12 +69,12 @@ organization's Settings › GitHub page in Merget's dashboard, where an owner
 of the organization installs Merget's GitHub App or connects an installation
 that already exists; give the human that page.
 
-## `sema_installation_sync` — `sema:repos.write`
+## `merget_installation_sync` — `merget:repos.write`
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
 | `org` | slug | no | |
-| `installation` | integer | no | one installation id; omit to sync every installation of the organization (that also needs `sema:org.read`) |
+| `installation` | integer | no | one installation id; omit to sync every installation of the organization (that also needs `merget:org.read`) |
 
 Answer: `{org, org_name, installations: [{installation_id, ok, installation?, repositories?, error?}]}`:
 `org_name` is the organization's display name, what to call it (null: its
@@ -87,7 +87,7 @@ organization (`installation_removed`). Re-checking is any member's, as the
 dashboard's **Re-check** is; connecting and releasing installations are an
 owner's, in the dashboard.
 
-## `sema_repos_list` — `sema:org.read`, read-only
+## `merget_repos_list` — `merget:org.read`, read-only
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -106,7 +106,7 @@ Answer: `{items, next_cursor, policy_schema}`. Each item is a repository:
 no current answer; every change re-checks it live. A repository whose agent
 access is `off` is not listed to an agent.
 
-## `sema_repo_settings_get` — `sema:org.read`, read-only
+## `merget_repo_settings_get` — `merget:org.read`, read-only
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -117,7 +117,7 @@ as above, its customer policy and schema (the `merget-operate` skill), and:
 
 | `readiness` field | Meaning |
 |-------------------|---------|
-| `modes` | `{advisory, queue, autonomous}`, each `{ready, needs, recommended}`. `needs` is what `sema_repo_update` would refuse that mode without (only ever `contents:write`); `recommended` is `[{permission, reason}]` (`administration:write`, `actions:write`), never a refusal. Advisory is always ready. |
+| `modes` | `{advisory, queue, autonomous}`, each `{ready, needs, recommended}`. `needs` is what `merget_repo_update` would refuse that mode without (only ever `contents:write`); `recommended` is `[{permission, reason}]` (`administration:write`, `actions:write`), never a refusal. Advisory is always ready. |
 | `installation` | `{id, account_login, account_type, status, repository_selection, permissions}`; `permissions` as last read from GitHub (`{}` until read) |
 | `viewer_permission` | the human's GitHub permission on the repository, as above |
 | `queue_enforcement` | `{status, reasons, …}`: `enforced` (GitHub makes manual merges follow Merget's order), `not_enforced`, `unknown` (not verified in the last ten minutes) or `not_applicable` (advisory mode) |
@@ -126,7 +126,7 @@ as above, its customer policy and schema (the `merget-operate` skill), and:
 | `github_read` | `{ok, error, read_at}`: whether the live read worked. For an agent a reading is reused for up to a minute. |
 | `checked_at` | when the document was composed |
 
-## `sema_repo_update` — `sema:repos.write`
+## `merget_repo_update` — `merget:repos.write`
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|
@@ -134,7 +134,7 @@ as above, its customer policy and schema (the `merget-operate` skill), and:
 | `enabled` | boolean | no | turn Merget on or off for the repository |
 | `mode` | `advisory` \| `queue` \| `autonomous` | no | queue and autonomous need the App's Contents: write (409 `permission_missing`) |
 | `target_branch` | string \| null | no | the branch Merget queues into; null resets it to the default branch |
-| `queue_label` | string (1–100) | no | the repository's queue label (default `sema:queue`) |
+| `queue_label` | string (1–100) | no | the repository's queue label (default `merget:queue`) |
 | `resolution_scope` | `blocking` \| `all_findings` | no | shortcut for `policy.resolution_scope`; not together with `policy` |
 | `policy` | object | no | a JSON merge patch over the customer policy (the `merget-operate` skill) |
 
@@ -148,7 +148,7 @@ Every change to a repository's settings prepares its queued pull requests
 again and voids a standing land request; sending the values already stored
 changes nothing.
 
-## `sema_docs` — `sema:org.read`, read-only
+## `merget_docs` — `merget:org.read`, read-only
 
 | Argument | Type | Required | Meaning |
 |----------|------|----------|---------|

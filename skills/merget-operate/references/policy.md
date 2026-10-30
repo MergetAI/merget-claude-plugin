@@ -1,6 +1,6 @@
 # Repository policy: keys, groups and the merge patch
 
-`sema_repo_settings_get` answers `policy`, the **customer view** — every
+`merget_repo_settings_get` answers `policy`, the **customer view** — every
 setting the user may change, at its stored value; an absent key is at
 Merget's default — and `policy_schema`, one row per key a patch may set:
 
@@ -21,7 +21,7 @@ with what each one does; a key the schema does not list cannot be set.
 
 ## The merge patch
 
-`sema_repo_update {repo, policy}` applies `policy` as a JSON merge patch
+`merget_repo_update {repo, policy}` applies `policy` as a JSON merge patch
 (RFC 7396) over the customer view, then checks the result as a whole:
 
 | The patch | Happens |
@@ -36,7 +36,7 @@ with what each one does; a key the schema does not list cannot be set.
 | changes `merge_method` to one GitHub does not allow on the repository | refused: 400 `invalid_policy`, the message naming the GitHub setting to change (when GitHub cannot be asked, the save goes through) |
 
 `resolution_scope` may also be sent as a top-level argument of
-`sema_repo_update`, but not together with `policy`. Send only the keys you
+`merget_repo_update`, but not together with `policy`. Send only the keys you
 change: a full customer view is a valid patch too, but it re-sends values
 another person may be changing at the same moment.
 
@@ -52,7 +52,7 @@ standing land request; a patch that changes nothing prepares nothing again.
 | `merge_method` | `merge` \| `squash` \| `rebase` | how Merget asks GitHub to merge when Merget merges (autonomous mode's head, a batch landed through the merge API); absent = Merget decides: a merge commit when the repository allows one and the target does not require linear history, else squash |
 
 `enabled`, `mode` and `target_branch` are top-level arguments of
-`sema_repo_update`, not policy keys.
+`merget_repo_update`, not policy keys.
 
 ### Generated files (`generated_files`)
 
