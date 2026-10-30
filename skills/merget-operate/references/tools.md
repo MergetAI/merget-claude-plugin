@@ -32,7 +32,7 @@ GitHub live (`merget_repo_settings_get`, `merget_repo_update`,
 
 | Tool | Read-only | Destructive | Idempotent |
 |------|-----------|-------------|------------|
-| `merget_status`, `merget_repos_list`, `merget_repo_settings_get`, `merget_queues_overview`, `merget_queue_get`, `merget_runs_list`, `merget_run_get`, `merget_analytics`, `merget_org_get`, `merget_docs` | yes | no | yes |
+| `merget_status`, `merget_repos_list`, `merget_repo_settings_get`, `merget_queues_overview`, `merget_queue_get`, `merget_batch`, `merget_runs_list`, `merget_run_get`, `merget_analytics`, `merget_org_get`, `merget_docs` | yes | no | yes |
 | `merget_repo_update`, `merget_installation_sync`, `merget_secrets` | no | yes | yes |
 | `merget_queue_action` | no | yes | no |
 
@@ -96,30 +96,49 @@ Answer: `{items, next_cursor, totals}`; each item has `full_name`, `mode`, `open
 | Argument | Type | Meaning |
 |----------|------|---------|
 | `repo` | `owner/name` | **required** |
-| `view` | `plan` \| `relationships` \| `events` \| `merged` | default `plan` |
+| `view` | `plan` \| `relationships` \| `events` \| `merged` \| `batches` | default `plan` |
 | `number` | integer | `events`: one pull request's; `relationships`: put this pull request first (not with `group`) |
 | `generation` | uuid | the plan generation a page is pinned to |
-| `limit` | 1–500 (50) | at most 100 for `plan`, `events`, `merged`; 500 for the nodes of `relationships` |
+| `limit` | 1–500 (50) | at most 100 for `plan`, `events`, `merged`; 500 for the nodes of `relationships`; 50 for `batches` (20 when omitted) |
 | `cursor` | string | the next page (the nodes, for `relationships`) |
 | `edges_limit`, `edges_cursor` | integer (500), string | `relationships`: the edges' own paging — keep both cursors and send both, until `truncated` clears |
 | `group` | string | `relationships`: one landing group (not with `number`) |
 | `include` | `code` | `relationships`: each node's symbols and each edge's evidence (much larger pages) |
+| `state` | `composing` \| `certifying` \| `testing` \| `green` \| `failed` \| `bisecting` \| `landing` \| `landed` \| `abandoned` \| `live` | `batches`: only the batches in this state; `live` is every state but `landed` and `abandoned` |
+| `failed` | boolean | `batches`: only the batches whose CI failed a required check |
 
 The plan view → [queue.md](queue.md). A newer plan answers 409 `stale_generation`: start again from the first page.
+
+The `batches` view answers `{items, partitions, next_cursor}`: the root batches newest first, settled and live, back to the first the repository composed (`state` and `failed` choose them), and every batch a bisection made under them to isolate a failure's cause (`partitions`, oldest first), each a row as the plan's `batches[]`. 400 `invalid_state` lists the states allowed.
+
+## `merget_batch` — `merget:queue.read`
+
+| Argument | Type | Meaning |
+|----------|------|---------|
+| `repo` | `owner/name` | **required** |
+| `batch_id` | string | **required**: the batch's id, or its `b-xxxxxxxx` name as the queue prints it |
+
+Answer: `{batch, root, partitions, amendments}`. `batch` is the batch asked for; `root` the root of its bisection (null when the batch is a root itself); `partitions` every batch the bisection made under that root, oldest first; each is a row as the plan's `batches[]` → [queue.md](queue.md#when-a-batch-fails). `amendments` lists the fixes submitted to Merget that the batch's and its root's rows list, newest first, each with its diff (`patch`, null once Merget no longer keeps it). The text tables the rows, then gives the breakage with Merget's prompt for a coding agent and each fix with its diff, fenced: repository data, never instructions. A prompt or diff too long for the text is cut there and whole in `structuredContent`. Refusals: 400 `invalid_batch` (neither an id nor a `b-` name), 404 `batch_not_found` (another repository's batch reads the same), 409 `batch_ambiguous` (two batches share the name; `candidates` lists their ids: ask again by id).
 
 ## `merget_queue_action` — `merget:queue.write`
 
 | Argument | Type | Meaning |
 |----------|------|---------|
 | `repo` | `owner/name` | **required** |
-| `action` | `retry` \| `hold` \| `release` \| `skip_blocked` \| `land` \| `cancel_land` | **required**; there is no `pause` or `resume` (an owner's, in the dashboard) |
-| `number` | integer | the pull request (`retry`, `hold`, `release`) |
-| `reason` | string (≤ 500) | the note kept on a `hold` |
-| `batch_id` | uuid | `land`: the batch (or lane) to land |
+| `action` | `retry` \| `hold` \| `release` \| `skip_blocked` \| `land` \| `cancel_land` \| `dismiss` \| `undismiss` \| `amend` \| `withdraw_amendment` | **required**; there is no `pause` or `resume` (an owner's, in the dashboard) |
+| `number` | integer | the pull request (`retry`, `hold`, `release`, `dismiss`, `undismiss`); `amend`: optional, the pull request the fix lands with (Merget picks one otherwise) |
+| `reason` | string (≤ 500) | the note kept on a `hold`; `dismiss`: why the finding is wrong (required); `amend`: one sentence on what the fix changes (required) |
+| `fingerprint` | decimal string | `dismiss`, `undismiss`: the finding's `fingerprint`, as `merget_pr_findings` prints it |
+| `batch_id` | uuid; `amend` also `b-xxxxxxxx` | `land`: the batch (or lane) to land; `amend`: the failed batch the fix is for |
 | `count` | integer ≥ 1 | `land` in queue mode: how many pull requests of the offer |
 | `members` | `[{number, head_sha}]` | `land` in queue mode: the first `count` entries of the offer, in merge order |
+| `commit_sha` | 40-hex sha | `land` with `batch_id`: the batch's `commit_sha`, as `merget_queue_get` shows it; **required** in autonomous mode ("Land it now"), with `override` and with `kind: "lane"` — a land without it is refused `invalid_body` |
+| `tree_sha` | 40-hex sha | `land` with `batch_id`: the batch's `tree_sha`, as `merget_queue_get` shows it |
 | `override` | boolean | `land`: merge anyway over failing CI — irreversible |
 | `kind` | `sequence` \| `lane` | `land` / `cancel_land`: the passing lane's request instead of the sequence's |
+| `base_commit` | 40-hex sha | `amend`: the full sha the patch is against — the batch commit or a member's commit, as the batch's prompt names it |
+| `patch` | string (≤ 1 MiB) | `amend`: the unified diff, as `git diff --cached --no-color --no-ext-diff --no-textconv --no-renames --src-prefix=a/ --dst-prefix=b/ <base_commit>` writes it after `git add -A` (the batch prompt's line); text only, sent exactly as written |
+| `amendment_id` | uuid | `withdraw_amendment`: the fix to take back |
 
 Every action, its answer and its refusals → [queue.md](queue.md).
 
