@@ -83,7 +83,7 @@ standing land request; a patch that changes nothing prepares nothing again.
 | `batch.max_wait_secs` | secs, bounded | how long a batch waits for more pull requests to become ready |
 | `batch.max_inflight` | int, bounded | batches in CI at once |
 | `batch.min_green_probability` | float in (0, 1) | start a new batch before a change that makes the group likelier to fail |
-| `batch.amendments` | bool | accept fixes submitted to Merget for a batch whose CI failed, which Merget lands with the pull request (default on; off, a fix reaches the queue only by a push to the branch) |
+| `batch.amendments` | bool | accept fixes submitted to Merget for a batch whose CI failed, and resolutions of a pull request's conflicts submitted for merge time, which Merget lands with the pull request (default on; off, a fix or a resolution reaches the queue only by a push to the branch) |
 | `queue.skip_after_secs` | secs, bounded | move a pull request that cannot land behind those that can after this long; absent = off |
 | `queue.passing_lane.enabled` | bool | when the first pull request is not ready, test and merge independent ones behind it, ahead of it (default off) |
 | `queue.passing_lane.max_members` | int, bounded | pull requests per lane |

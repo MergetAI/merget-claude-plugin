@@ -43,6 +43,7 @@ order:
 | `enable_agents` | an organization does not let agents in (`agent_access: false`) | the human (an owner) allows agents at `url`, Settings › Agents |
 | `allow_agent_permissions` | the organization's owner does not let agents read it (`merget:org.read` outside `agent_scopes`) | an owner allows it at `url` |
 | a setup `action` above, with `org` | the first organization whose setup is not `ready` | as above |
+| `credits_exhausted`, with `org` | an organization whose setup is `ready` has used its monthly Merget credits (`billing_hold` on its row), so Merget starts no work there | the human: an owner raises the spending cap or changes the plan at `url`, Settings › Billing; otherwise nothing starts until the allowance renews |
 | `none` | every organization whose setup was read is ready | nothing |
 
 A step about one organization carries `org`, its slug, and `org_name`, its
